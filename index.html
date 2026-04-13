@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="나의 하루"/>
@@ -18,7 +19,7 @@
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="react">
+  <script type="text/babel">
     const { useState, useCallback, useMemo } = React;
 
 
@@ -1069,7 +1070,7 @@ function CalendarModal({ onClose, onSelect, t, todayIso }) {
 }
 
 // ─── App ──────────────────────────────────────────────────────────────────────
-export default function App() {
+function App() {
   const { iso, label } = todayInfo();
   const [tab,       setTab]       = useState(0);
   const [historyTab,setHistoryTab]= useState(0);
