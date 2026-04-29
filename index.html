@@ -11,10 +11,7 @@
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #e8e8e8; }
-  </style>
+  <style>* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #e8e8e8; }</style>
 </head>
 <body>
   <div id="root"></div>
@@ -113,8 +110,8 @@ const DETAIL_TABS = ["💰 가계부","🧭 루틴","🍎 식단"];
 const DAYS        = ["일","월","화","수","목","금","토"];
 const ROUTINE_KEYS= ["오전","라인관리","산책","소비통제","밤"];
 const ROUTINE_EMOJI=["☀️","📏","🚶","💳","🌙"];
-const SPEND_CATS  = ["필수","생활","식비","쇼핑","자기개발","기타"];
-const CAT_EMOJI   = ["🏠","🛒","🍽️","🛍️","📚","💡"];
+const SPEND_CATS  = ["고정비","변동고정비","생활","식비","쇼핑","자기개발","반려동물","위생/뷰티","기타"];
+const CAT_EMOJI   = ["🏠","📌","🛒","🍽️","🛍️","📚","🐾","🧴","💡"];
 
 const p2 = n => String(n).padStart(2,"0");
 
@@ -135,7 +132,7 @@ const isoToLabel = iso => {
   return `${iso} (${DAYS[d.getDay()]}요일)`;
 };
 
-// week Mon–Sun
+// week Mon–Sun (로컬 날짜 기준)
 const getWeekDates = iso => {
   const d   = new Date(iso+"T00:00:00");
   const dow = d.getDay();
@@ -143,13 +140,14 @@ const getWeekDates = iso => {
   mon.setDate(d.getDate() - (dow === 0 ? 6 : dow - 1));
   return Array.from({length:7}, (_,i) => {
     const dd = new Date(mon); dd.setDate(mon.getDate()+i);
-    return dd.toISOString().slice(0,10);
+    return getLocalDateStr(dd);
   });
 };
 
 const getPrevWeekDates = iso => {
-  const d = new Date(iso+"T00:00:00"); d.setDate(d.getDate()-7);
-  return getWeekDates(d.toISOString().slice(0,10));
+  const d = new Date(iso+"T00:00:00");
+  d.setDate(d.getDate()-7);
+  return getWeekDates(getLocalDateStr(d));
 };
 
 const getMonthDates = iso => {
@@ -160,8 +158,8 @@ const getMonthDates = iso => {
 };
 
 // defaults
-const defLedger  = () => ({ 고정수입:"", 기타소득:"", 필수:"", 생활:"", 식비:"", 쇼핑:"", 자기개발:"", 기타:"", 저축투자:"", note:"" });
-const defRoutine = () => ({ 오전:false,오전상세:"",라인관리:false,산책:false,산책상세:"",단백질:"",소비통제:false,디지털:"해당없음",밤:false,밤상세:"",note:"" });
+const defLedger  = () => ({ 고정수입:"", 기타소득:"", 고정비:"", 변동고정비:"", 생활:"", 식비:"", 쇼핑:"", 자기개발:"", 반려동물:"", "위생/뷰티":"", 기타:"", 저축투자:"", note:"" });
+const defRoutine = () => ({ 오전:false,오전상세:"",라인관리:false,라인관리상세:"",산책:false,산책상세:"",소비통제:false,소비통제상세:"",디지털:"해당없음",밤:false,밤상세:"",note:"" });
 const defDiet    = () => ({ 아침메뉴:"",아침포만감:"",점심메뉴:"",점심포만감:"",간식:"",저녁메뉴:"",저녁포만감:"",산책:false,note:"",몸무게:"" });
 
 const lsGet = (key,iso,fn) => { try{ const r=localStorage.getItem(`dt_${key}_${iso}`); return r?JSON.parse(r):fn(); }catch{return fn();} };
@@ -389,11 +387,11 @@ function LedgerTab({ data, onChange, t, readOnly, iso }) {
 function RoutineTab({ data, onChange, t, readOnly, iso }) {
   const set = (k,v) => { if (!readOnly) onChange({...data,[k]:v}); };
   const items = [
-    { key:"오전",     label:"오전 루틴",  hasDetail:true,  detailKey:"오전상세"  },
-    { key:"라인관리", label:"라인관리",   hasDetail:false },
-    { key:"산책",     label:"산책",       hasDetail:true,  detailKey:"산책상세"  },
-    { key:"소비통제", label:"소비통제",   hasDetail:false },
-    { key:"밤",       label:"밤 루틴",    hasDetail:true,  detailKey:"밤상세"    },
+    { key:"오전",     label:"오전 루틴",  hasDetail:true, detailKey:"오전상세"      },
+    { key:"라인관리", label:"라인관리",   hasDetail:true, detailKey:"라인관리상세"  },
+    { key:"산책",     label:"산책",       hasDetail:true, detailKey:"산책상세"      },
+    { key:"소비통제", label:"소비통제",   hasDetail:true, detailKey:"소비통제상세"  },
+    { key:"밤",       label:"밤 루틴",    hasDetail:true, detailKey:"밤상세"        },
   ];
   const done = items.filter(i=>data[i.key]).length;
 
@@ -406,7 +404,6 @@ function RoutineTab({ data, onChange, t, readOnly, iso }) {
       const memo = hasDetail && data[detailKey] ? ` (${data[detailKey]})` : "";
       return `${check} ${label}${memo}`;
     }),
-    `🥩 단백질: ${data.단백질||"미입력"}`,
     `📱 디지털: ${data.디지털}`,
     data.note ? `\n💬 ${data.note}` : "",
   ].filter(l=>l!==undefined).join("\n");
@@ -439,12 +436,6 @@ function RoutineTab({ data, onChange, t, readOnly, iso }) {
             )}
           </div>
         ))}
-      </Card>
-
-      <Card t={t}>
-        <SectionLabel t={t}>🥩 단백질</SectionLabel>
-        <input placeholder="오늘 먹은 단백질 식품" value={data.단백질} onChange={e=>set("단백질",e.target.value)} readOnly={readOnly}
-          style={{ width:"100%", border:"none", borderRadius:10, padding:"10px 12px", ...S.body, background:readOnly?"#f5f5f5":t.inputBg, outline:"none", fontFamily:"inherit", color:"#333" }}/>
       </Card>
 
       <Card t={t}>
@@ -675,10 +666,13 @@ function StatsView({ todayIso }) {
   const [period, setPeriod] = useState("week"); // week | prevweek | month
   const [streakInfo, setStreakInfo] = useState(null);
 
-  // 월 고정수입 별도 입력
+  // 월 고정수입 별도 입력 (기본값 885,070원 — 생계비+주거급여)
   const monthKey = todayIso.slice(0,7); // "YYYY-MM"
   const [monthlyIncome, setMonthlyIncome] = useState(() => {
-    try { return localStorage.getItem(`dt_monthlyIncome_${monthKey}`) || ""; } catch { return ""; }
+    try {
+      const saved = localStorage.getItem(`dt_monthlyIncome_${monthKey}`);
+      return saved !== null ? saved : "885070";
+    } catch { return "885070"; }
   });
   const saveMonthlyIncome = v => {
     setMonthlyIncome(v);
@@ -792,10 +786,11 @@ function StatsView({ todayIso }) {
       {/* 월 수입 설정 */}
       <Card t={t}>
         <SectionLabel t={t}>💵 이번 달 고정수입</SectionLabel>
+        <div style={{ ...S.tiny, color:"#aaa", marginBottom:8 }}>생계비 + 주거급여</div>
         <div style={{ display:"flex", alignItems:"center", gap:8 }}>
           <input
             type={focusedMI ? "number" : "text"}
-            placeholder="월 고정수입 입력"
+            placeholder="885,070"
             value={focusedMI ? monthlyIncome : (miNum>0 ? miNum.toLocaleString() : "")}
             onFocus={()=>setFocusedMI(true)}
             onBlur={()=>setFocusedMI(false)}
@@ -805,15 +800,19 @@ function StatsView({ todayIso }) {
           <span style={{ ...S.small, color:"#aaa" }}>원</span>
         </div>
         {miNum > 0 && (
-          <div style={{ marginTop:10, display:"grid", gridTemplateColumns:"1fr 1fr", gap:8 }}>
-            <div style={{ background:t.inputBg, borderRadius:12, padding:"10px", textAlign:"center" }}>
-              <div style={{ ...S.tiny, color:"#aaa", marginBottom:4 }}>이번 달 지출</div>
-              <div style={{ fontSize:14, fontWeight:800, color:"#f0735a" }}>{weekTotal.toLocaleString()}<span style={{fontSize:10}}>원</span></div>
+          <div style={{ marginTop:10, display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
+            <div style={{ background:t.inputBg, borderRadius:12, padding:"10px 8px", textAlign:"center" }}>
+              <div style={{ ...S.tiny, color:"#aaa", marginBottom:4 }}>월 수입</div>
+              <div style={{ fontSize:13, fontWeight:800, color:"#5b6af7" }}>{miNum.toLocaleString()}<span style={{fontSize:9}}>원</span></div>
             </div>
-            <div style={{ background:t.inputBg, borderRadius:12, padding:"10px", textAlign:"center" }}>
+            <div style={{ background:t.inputBg, borderRadius:12, padding:"10px 8px", textAlign:"center" }}>
+              <div style={{ ...S.tiny, color:"#aaa", marginBottom:4 }}>이달 지출</div>
+              <div style={{ fontSize:13, fontWeight:800, color:"#f0735a" }}>{period==="month"?weekTotal.toLocaleString():"-"}<span style={{fontSize:9}}>원</span></div>
+            </div>
+            <div style={{ background:t.inputBg, borderRadius:12, padding:"10px 8px", textAlign:"center" }}>
               <div style={{ ...S.tiny, color:"#aaa", marginBottom:4 }}>남은 예산</div>
-              <div style={{ fontSize:14, fontWeight:800, color:(miNum-weekTotal)>=0?"#3d9e7b":"#f0735a" }}>
-                {Math.abs(miNum-weekTotal).toLocaleString()}<span style={{fontSize:10}}>원</span>
+              <div style={{ fontSize:13, fontWeight:800, color:period==="month"?(miNum-weekTotal)>=0?"#3d9e7b":"#f0735a":"#aaa" }}>
+                {period==="month"?Math.abs(miNum-weekTotal).toLocaleString():"월탭확인"}<span style={{fontSize:9}}>{period==="month"?"원":""}</span>
               </div>
             </div>
           </div>
@@ -958,6 +957,83 @@ function StatsView({ todayIso }) {
           );
         })}
       </Card>
+
+      {/* ⚖️ 몸무게 기록 & 그래프 */}
+      {(() => {
+        // 모든 날짜에서 몸무게 기록 수집 (월요일 한정 아님)
+        const allWeightDates = [...new Set(
+          Object.keys(localStorage)
+            .filter(k=>k.startsWith("dt_diet_"))
+            .map(k=>k.replace("dt_diet_",""))
+        )].sort();
+
+        const weightHistory = allWeightDates.reduce((acc, wIso) => {
+          const diet = lsGet("diet", wIso, defDiet);
+          if (diet.몸무게 && parseFloat(diet.몸무게)>0) {
+            acc.push({ iso:wIso, w:parseFloat(diet.몸무게) });
+          }
+          return acc;
+        }, []).slice(-12); // 최근 12개
+
+        const hasData = weightHistory.length > 0;
+        const wMn = hasData ? Math.min(...weightHistory.map(x=>x.w)) : 0;
+        const wMx = hasData ? Math.max(...weightHistory.map(x=>x.w)) : 1;
+        const wRange = wMx-wMn || 0.1;
+        const lastW  = hasData ? weightHistory[weightHistory.length-1].w : null;
+        const firstW = hasData ? weightHistory[0].w : null;
+        const diff   = hasData && weightHistory.length>1 ? (lastW-firstW).toFixed(1) : null;
+
+        return (
+          <Card t={t}>
+            <SectionLabel t={t}>⚖️ 몸무게 변화</SectionLabel>
+            {!hasData ? (
+              <div style={{ textAlign:"center", padding:"20px 0", color:"#bbb", ...S.small }}>
+                식단 탭에서 몸무게를 기록하면 여기에 그래프가 나타나요 📊
+              </div>
+            ) : (
+              <>
+                {/* 현재 몸무게 + 변화 */}
+                <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:16 }}>
+                  <div style={{ background:t.accentLight, borderRadius:14, padding:"12px 16px", textAlign:"center" }}>
+                    <div style={{ ...S.tiny, color:t.accent, marginBottom:4 }}>최근 기록</div>
+                    <div style={{ fontSize:24, fontWeight:900, color:t.accent }}>{lastW}<span style={{ fontSize:12, fontWeight:500 }}>kg</span></div>
+                  </div>
+                  {diff !== null && (
+                    <div style={{ background: parseFloat(diff)<0?"#f0faf6":"#fff5f5", borderRadius:14, padding:"12px 16px", textAlign:"center" }}>
+                      <div style={{ ...S.tiny, color:"#aaa", marginBottom:4 }}>{weightHistory.length}회 기준</div>
+                      <div style={{ fontSize:18, fontWeight:900, color:parseFloat(diff)<0?"#3d9e7b":parseFloat(diff)>0?"#f0735a":"#aaa" }}>
+                        {parseFloat(diff)>0?"+":""}{diff}kg
+                      </div>
+                      <div style={{ fontSize:10, color:"#aaa", marginTop:2 }}>{parseFloat(diff)<0?"😊 감소":parseFloat(diff)>0?"📈 증가":"➡️ 유지"}</div>
+                    </div>
+                  )}
+                </div>
+                {/* 바 그래프 */}
+                <div style={{ display:"flex", alignItems:"flex-end", gap:4, height:80 }}>
+                  {weightHistory.map(({iso:wIso, w}, i) => {
+                    const pct = (w-wMn)/wRange;
+                    const barH = 14+pct*60;
+                    const isLast = i===weightHistory.length-1;
+                    const d = new Date(wIso+"T00:00:00");
+                    return (
+                      <div key={wIso} style={{ flex:1, display:"flex", flexDirection:"column", alignItems:"center", gap:2 }}>
+                        <span style={{ fontSize:8, fontWeight:800, color:isLast?t.accent:"#ccc" }}>{w}</span>
+                        <div style={{ width:"100%", height:barH, background:isLast?t.accent:t.accentLight, borderRadius:"4px 4px 0 0", transition:"height 0.4s ease" }}/>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display:"flex", gap:4, marginTop:4 }}>
+                  {weightHistory.map(({iso:wIso},i) => {
+                    const d=new Date(wIso+"T00:00:00");
+                    return <div key={i} style={{ flex:1, textAlign:"center", fontSize:7, color:"#bbb" }}>{d.getMonth()+1}/{d.getDate()}</div>;
+                  })}
+                </div>
+              </>
+            )}
+          </Card>
+        );
+      })()}
 
       {/* 내보내기 */}
       <button onClick={copyText}
@@ -1288,7 +1364,6 @@ const CSS = `
   textarea, input, button { font-family:inherit; }
   ::-webkit-scrollbar { width:0; }
 `;
-
 
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(React.createElement(App));
