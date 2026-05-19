@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AI워커 체크">
+<meta name="theme-color" content="#ffffff">
+<title>AI워커 체크리스트</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --teal: #1D9E75;
+    --teal-light: #E1F5EE;
+    --teal-dark: #085041;
+    --blue: #185FA5;
+    --blue-light: #E6F1FB;
+    --amber: #854F0B;
+    --amber-light: #FAEEDA;
+    --purple: #3C3489;
+    --purple-light: #EEEDFE;
+    --coral: #993C1D;
+    --coral-light: #FAECE7;
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --text-hint: #9ca3af;
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text: #f0f0ee;
+      --text-muted: #a0a09a;
+      --text-hint: #6b6b65;
+      --bg: #1a1a18;
+      --surface: #242422;
+      --border: rgba(255,255,255,0.08);
+      --teal-light: #04342C;
+      --blue-light: #042C53;
+      --amber-light: #412402;
+      --purple-light: #26215C;
+      --coral-light: #4A1B0C;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 80px);
+  }
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  h1 { font-size: 18px; font-weight: 600; letter-spacing: -0.3px; }
+  .header-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .reset-btn {
+    font-size: 12px; color: var(--text-hint); border: none;
+    background: none; cursor: pointer; padding: 4px 0; font-family: inherit;
+  }
+  .progress-wrap { display: flex; align-items: center; gap: 10px; }
+  .progress-bar { flex: 1; height: 5px; background: var(--border); border-radius: 99px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--teal); border-radius: 99px; transition: width 0.4s cubic-bezier(.4,0,.2,1); }
+  .progress-label { font-size: 12px; color: var(--text-muted); min-width: 50px; text-align: right; }
+  main { padding: 16px 16px 40px; display: flex; flex-direction: column; gap: 12px; }
+
+  .phase-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .phase-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 16px 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .phase-badge {
+    width: 26px; height: 26px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+  }
+  .phase-info { flex: 1; }
+  .phase-title { font-size: 14px; font-weight: 600; }
+  .phase-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .phase-count { font-size: 12px; color: var(--text-hint); }
+  .phase-arrow { font-size: 16px; color: var(--text-hint); transition: transform 0.2s; }
+  .phase-card.collapsed .phase-arrow { transform: rotate(-90deg); }
+
+  .task-group { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 6px; }
+  .phase-card.collapsed .task-group { display: none; }
+
+  .task {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 12px;
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: opacity 0.2s, background 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .task:active { background: var(--border); }
+  .task.done { opacity: 0.45; }
+  .checkbox {
+    width: 22px; height: 22px; border-radius: 6px;
+    border: 1.5px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; margin-top: 0px;
+    background: var(--surface);
+    transition: all 0.18s;
+  }
+  .task.done .checkbox { background: var(--teal); border-color: var(--teal); }
+  .checkmark { display: none; color: white; font-size: 13px; font-weight: 700; }
+  .task.done .checkmark { display: block; }
+  .task-body { flex: 1; }
+  .task-text { font-size: 13.5px; line-height: 1.55; }
+  .task.done .task-text { text-decoration: line-through; color: var(--text-hint); }
+  .task-link {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 11px; color: var(--blue);
+    text-decoration: none; margin-top: 5px;
+    padding: 3px 8px; border-radius: 99px;
+    border: 1px solid rgba(24,95,165,0.25);
+    background: var(--blue-light);
+  }
+  .task-tag {
+    font-size: 11px; font-weight: 500;
+    padding: 3px 9px; border-radius: 99px;
+    flex-shrink: 0; align-self: flex-start; margin-top: 2px;
+  }
+  .tag-now { background: var(--coral-light); color: var(--coral); }
+  .tag-soon { background: var(--blue-light); color: var(--blue); }
+  .tag-during { background: var(--amber-light); color: var(--amber); }
+  .tag-after { background: var(--purple-light); color: var(--purple); }
+
+  .arrow-divider {
+    text-align: center; font-size: 20px; color: var(--text-hint);
+    padding: 2px 0;
+  }
+
+  .done-banner {
+    display: none;
+    text-align: center; padding: 24px 20px;
+    background: var(--teal-light); border-radius: var(--radius);
+    border: 1px solid rgba(29,158,117,0.2);
+  }
+  .done-banner.show { display: block; }
+  .done-banner-emoji { font-size: 32px; margin-bottom: 8px; }
+  .done-banner-text { font-size: 15px; font-weight: 600; color: var(--teal-dark); }
+  .done-banner-sub { font-size: 13px; color: var(--teal); margin-top: 4px; }
+
+  .install-banner {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .install-icon { font-size: 24px; flex-shrink: 0; }
+  .install-text { flex: 1; font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+  .install-text strong { color: var(--text); font-weight: 600; font-size: 13px; display: block; margin-bottom: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <div>
+      <h1>AI워커 체크리스트</h1>
+      <div class="header-sub">내일배움카드 → AI Worker → 창업 지원</div>
+    </div>
+    <button class="reset-btn" onclick="resetAll()">초기화</button>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="pfill" style="width:0%"></div></div>
+    <div class="progress-label" id="plabel">0 / 11</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="install-banner">
+    <div class="install-icon">📲</div>
+    <div class="install-text">
+      <strong>홈화면에 추가하는 방법</strong>
+      iPhone Safari: 하단 공유버튼 → "홈 화면에 추가" / Android Chrome: 우상단 메뉴 → "홈 화면에 추가"
+    </div>
+  </div>
+
+  <div class="phase-card" id="phase1">
+    <div class="phase-header" onclick="togglePhase('phase1')">
+      <div class="phase-badge" style="background:var(--teal-light);color:var(--teal-dark);">1</div>
+      <div class="phase-info">
+        <div class="phase-title">내일배움카드 상태 확인</div>
+        <div class="phase-sub">오늘 당장 — 5분이면 끝!</div>
+      </div>
+      <div class="phase-count" id="count1"></div>
+      <div class="phase-arrow">▾</div>
+    </div>
+    <div class="task-group">
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">고용24 로그인 → 마이페이지 → 직업훈련관리 → 국민내일배움카드</div>
+          <a class="task-link" href="https://www.work24.go.kr" target="_blank">↗ work24.go.kr</a>
+        </div>
+        <span class="task-tag tag-now">지금</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">유효기간 확인 — 만료됐으면 재발급 신청 (온라인 가능, 수령 7~14일 소요)</div>
+        </div>
+        <span class="task-tag tag-now">지금</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">잔여 한도 확인 — 기본 300만원, 소진됐으면 추가 발급 가능 여부 체크</div>
+        </div>
+        <span class="task-tag tag-now">지금</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-divider">↓</div>
+
+  <div class="phase-card" id="phase2">
+    <div class="phase-header" onclick="togglePhase('phase2')">
+      <div class="phase-badge" style="background:var(--blue-light);color:var(--blue);">2</div>
+      <div class="phase-info">
+        <div class="phase-title">AI Worker 과정 검색 & 신청</div>
+        <div class="phase-sub">카드 확인 직후 — 이번 주 안에!</div>
+      </div>
+      <div class="phase-count" id="count2"></div>
+      <div class="phase-arrow">▾</div>
+    </div>
+    <div class="task-group">
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">고용24 훈련 찾기 → 'AI worker' 검색 → 내 지역 필터 설정</div>
+          <a class="task-link" href="https://www.work24.go.kr/hr/a/a/1100/trnnCrsInf.do" target="_blank">↗ 훈련 검색 바로가기</a>
+        </div>
+        <span class="task-tag tag-soon">이번 주</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">2~3개 기관 비교 — 개강일·수업시간·취업률 확인 후 전화로 커리큘럼 문의</div>
+        </div>
+        <span class="task-tag tag-soon">이번 주</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">영상콘텐츠 제작 과정 우선 지원 (사업 바로 활용 가능, 진입장벽 낮음)</div>
+        </div>
+        <span class="task-tag tag-soon">이번 주</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-divider">↓</div>
+
+  <div class="phase-card" id="phase3">
+    <div class="phase-header" onclick="togglePhase('phase3')">
+      <div class="phase-badge" style="background:var(--amber-light);color:var(--amber);">3</div>
+      <div class="phase-info">
+        <div class="phase-title">훈련 중 — 수당 받으며 사업 준비</div>
+        <div class="phase-sub">수강 기간 내내</div>
+      </div>
+      <div class="phase-count" id="count3"></div>
+      <div class="phase-arrow">▾</div>
+    </div>
+    <div class="task-group">
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">출석률 유지 → 월 30만원(수도권) / 40만원(비수도권) 훈련수당 수령</div>
+        </div>
+        <span class="task-tag tag-during">수강 중</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">배운 AI 툴로 사업 관련 콘텐츠 제작 → 포트폴리오로 축적</div>
+        </div>
+        <span class="task-tag tag-during">수강 중</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">K-startup 회원가입 & 예비창업패키지 공고 모니터링 (매년 1~3월 모집)</div>
+          <a class="task-link" href="https://www.k-startup.go.kr" target="_blank">↗ k-startup.go.kr</a>
+        </div>
+        <span class="task-tag tag-during">수강 중</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arrow-divider">↓</div>
+
+  <div class="phase-card" id="phase4">
+    <div class="phase-header" onclick="togglePhase('phase4')">
+      <div class="phase-badge" style="background:var(--purple-light);color:var(--purple);">4</div>
+      <div class="phase-info">
+        <div class="phase-title">수료 후 — 창업 지원 신청</div>
+        <div class="phase-sub">수료증 + 포트폴리오 손에 쥔 후</div>
+      </div>
+      <div class="phase-count" id="count4"></div>
+      <div class="phase-arrow">▾</div>
+    </div>
+    <div class="task-group">
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">고용24 만족도 조사 완료 — 수료 후 30일 내 필수! (안 하면 마지막 수당 못 받음)</div>
+          <a class="task-link" href="https://www.work24.go.kr" target="_blank">↗ work24.go.kr</a>
+        </div>
+        <span class="task-tag tag-after">수료 후</span>
+      </div>
+      <div class="task" onclick="toggle(this)">
+        <div class="checkbox"><span class="checkmark">✓</span></div>
+        <div class="task-body">
+          <div class="task-text">예비창업패키지 신청 — 수료증 + AI 포트폴리오가 역량 증빙 자료로 활용됨</div>
+          <a class="task-link" href="https://www.k-startup.go.kr" target="_blank">↗ k-startup.go.kr</a>
+        </div>
+        <span class="task-tag tag-after">수료 후</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="done-banner" id="doneBanner">
+    <div class="done-banner-emoji">🎉</div>
+    <div class="done-banner-text">모든 단계 완료!</div>
+    <div class="done-banner-sub">창업을 향한 첫 걸음을 다 밟았어요</div>
+  </div>
+
+</main>
+
+<script>
+const STORAGE_KEY = 'aiworker_checks_v1';
+
+function getState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function getAllTasks() { return document.querySelectorAll('.task'); }
+
+function toggle(el) {
+  el.classList.toggle('done');
+  persistAll();
+  updateProgress();
+}
+
+function persistAll() {
+  const state = {};
+  getAllTasks().forEach((t, i) => { state[i] = t.classList.contains('done'); });
+  saveState(state);
+}
+
+function loadState() {
+  const state = getState();
+  getAllTasks().forEach((t, i) => {
+    if (state[i]) t.classList.add('done');
+  });
+}
+
+function updateProgress() {
+  const tasks = getAllTasks();
+  const done = document.querySelectorAll('.task.done').length;
+  const total = tasks.length;
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('pfill').style.width = pct + '%';
+  document.getElementById('plabel').textContent = done + ' / ' + total;
+
+  ['1','2','3','4'].forEach(n => {
+    const card = document.getElementById('phase' + n);
+    if (!card) return;
+    const ts = card.querySelectorAll('.task');
+    const ds = card.querySelectorAll('.task.done');
+    const c = document.getElementById('count' + n);
+    if (c) c.textContent = ds.length + '/' + ts.length;
+  });
+
+  const banner = document.getElementById('doneBanner');
+  if (done === total && total > 0) banner.classList.add('show');
+  else banner.classList.remove('show');
+}
+
+function togglePhase(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+function resetAll() {
+  if (!confirm('체크를 모두 초기화할까요?')) return;
+  document.querySelectorAll('.task.done').forEach(t => t.classList.remove('done'));
+  saveState({});
+  updateProgress();
+}
+
+loadState();
+updateProgress();
+</script>
+</body>
+</html>
