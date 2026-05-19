@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MJ 30Days">
+<title>Midjourney 30 Days</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --orange: #FF6B35;
+    --orange-soft: rgba(255,107,53,0.10);
+    --orange-border: rgba(255,107,53,0.28);
+    --bg: #F2F2F7;
+    --card: #FFFFFF;
+    --text: #1C1C1E;
+    --text2: #6C6C70;
+    --text3: #AEAEB2;
+    --border: rgba(0,0,0,0.10);
+    --radius: 12px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1C1C1E;
+      --card: #2C2C2E;
+      --text: #FFFFFF;
+      --text2: #AEAEB2;
+      --text3: #636366;
+      --border: rgba(255,255,255,0.10);
+    }
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: 40px;
+  }
+
+  /* Header */
+  .header {
+    background: var(--card);
+    padding: 52px 20px 16px;
+    border-bottom: 0.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .app-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.5px;
+  }
+  .app-title span { color: var(--orange); }
+  .prog-label {
+    text-align: right;
+  }
+  .prog-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--orange);
+    display: block;
+    line-height: 1;
+  }
+  .prog-sub {
+    font-size: 11px;
+    color: var(--text2);
+    margin-top: 2px;
+    display: block;
+  }
+  .progress-wrap {
+    height: 5px;
+    background: var(--border);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--orange);
+    border-radius: 99px;
+    transition: width 0.4s ease;
+  }
+
+  /* Week section */
+  .week-section { margin-top: 24px; padding: 0 16px; }
+  .week-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--orange);
+    margin-bottom: 10px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .week-label::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: var(--orange-border);
+  }
+
+  /* Day card */
+  .day-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    margin-bottom: 8px;
+    overflow: hidden;
+    border: 0.5px solid var(--border);
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .day-card.completed {
+    border-color: var(--orange-border);
+    background: var(--orange-soft);
+  }
+  .day-card.project-card {
+    border-style: dashed;
+    border-width: 1px;
+    border-color: var(--orange-border);
+  }
+
+  .day-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  /* Circle toggle */
+  .circle-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1.5px solid var(--text3);
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+    -webkit-appearance: none;
+    outline: none;
+    padding: 0;
+  }
+  .circle-btn svg { display: none; }
+  .day-card.completed .circle-btn {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .day-card.completed .circle-btn svg { display: block; }
+
+  .day-info { flex: 1; min-width: 0; }
+  .day-num { font-size: 11px; color: var(--text2); font-weight: 500; }
+  .day-title {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 400;
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .project-card .day-title {
+    color: var(--orange);
+    font-weight: 600;
+  }
+
+  .chevron {
+    color: var(--text3);
+    font-size: 12px;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .day-card.open .chevron { transform: rotate(180deg); }
+
+  /* Items */
+  .day-items {
+    display: none;
+    padding: 0 14px 13px 50px;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .day-card.open .day-items { display: flex; }
+
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    cursor: pointer;
+    user-select: none;
+    padding: 2px 0;
+  }
+  .item-box {
+    width: 17px;
+    height: 17px;
+    border-radius: 4px;
+    border: 1.5px solid var(--text3);
+    background: transparent;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .item-box svg { display: none; }
+  .item-row.checked .item-box {
+    background: var(--orange);
+    border-color: var(--orange);
+  }
+  .item-row.checked .item-box svg { display: block; }
+  .item-text {
+    font-size: 13px;
+    color: var(--text2);
+    transition: all 0.15s;
+  }
+  .item-row.checked .item-text {
+    color: var(--text3);
+    text-decoration: line-through;
+    text-decoration-color: var(--orange-border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="app-title">Midjourney <span>30</span></div>
+    <div class="prog-label">
+      <span class="prog-num" id="prog-count">0 / 30</span>
+      <span class="prog-sub">days completed</span>
+    </div>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+  </div>
+</div>
+
+<div id="curriculum"></div>
+
+<script>
+const CHECK_SVG = `<svg width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4L4 7L10 1" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+const weeks = [
+  {
+    label: "Week 1 — 미드저니 언어 익히기",
+    days: [
+      { day:1, title:"프롬프트 기초", items:["키워드식 프롬프트","우선순위 이해","충돌 단어 이해","단순 vs 영화식 프롬프트 비교"] },
+      { day:2, title:"거리 & 구도", items:["close-up","medium shot","full body","wide shot","거리별 분위기 비교"] },
+      { day:3, title:"렌즈별 공간감", items:["35mm","50mm","85mm","렌즈별 공간감 비교"] },
+      { day:4, title:"조명 연출", items:["blue hour","rainy night","overcast daylight","soft window light","조명별 분위기 비교"] },
+      { day:5, title:"감정 표현", items:["감정을 상황으로 표현하기","행동 기반 프롬프트"] },
+      { day:6, title:"구도 요소", items:["negative space","off-center composition","leading lines","looking space"] },
+      { day:7, title:"🎬 Mini Project — 새벽 도시의 외로운 꽃미남", items:["상반신","전신","클로즈업","와이드샷"], project:true },
+    ]
+  },
+  {
+    label: "Week 2 — 영화 구도 & 공간감",
+    days: [
+      { day:8,  title:"negative space 심화", items:["negative space 심화 실습"] },
+      { day:9,  title:"leading lines 심화", items:["leading lines 심화 실습"] },
+      { day:10, title:"off-center composition 심화", items:["off-center composition 심화 실습"] },
+      { day:11, title:"wide shot 집중 훈련", items:["wide shot 집중 훈련 실습"] },
+      { day:12, title:"도시 공간 연출", items:["도시 공간 연출 실습"] },
+      { day:13, title:"새벽/비/겨울 무드", items:["새벽 무드","비 무드","겨울 무드"] },
+      { day:14, title:"🎬 Mini Project — 비 오는 도시 영화 스틸", items:["비 오는 도시 영화 스틸 제작"], project:true },
+    ]
+  },
+  {
+    label: "Week 3 — 감정 & 영화 서사",
+    days: [
+      { day:15, title:"행동 연출", items:["행동 연출 실습"] },
+      { day:16, title:"시선 처리", items:["시선 처리 실습"] },
+      { day:17, title:"침묵/거리감 연출", items:["침묵 연출","거리감 연출"] },
+      { day:18, title:"documentary realism", items:["documentary realism 실습"] },
+      { day:19, title:"AI 느낌 제거", items:["AI 느낌 제거","natural skin texture","candid photo","imperfect details"] },
+      { day:20, title:"영화 포스터 느낌", items:["영화 포스터 느낌 만들기 실습"] },
+      { day:21, title:"🎬 Mini Project — 겨울 감성 청춘 영화", items:["겨울 감성 청춘 영화 제작"], project:true },
+    ]
+  },
+  {
+    label: "Week 4 — 캐릭터 시리즈화",
+    days: [
+      { day:22, title:"대표 얼굴 만들기", items:["대표 얼굴 만들기 실습"] },
+      { day:23, title:"체형/비율 고정", items:["체형/비율 고정 실습"] },
+      { day:24, title:"패션 스타일 고정", items:["패션 스타일 고정 실습"] },
+      { day:25, title:"같은 캐릭터 다른 장소", items:["같은 캐릭터 다른 장소 생성"] },
+      { day:26, title:"같은 캐릭터 다른 감정", items:["같은 캐릭터 다른 감정 생성"] },
+      { day:27, title:"영화 스틸 시리즈", items:["영화 스틸 시리즈 만들기"] },
+      { day:28, title:"포스터 컷 제작", items:["포스터 컷 제작 실습"] },
+      { day:29, title:"캐릭터 세계관 정리", items:["캐릭터 세계관 정리"] },
+      { day:30, title:"🎬 Final Project — AI 영화 시리즈 만들기", items:["캐릭터 통일감","감정 흐름","공간감","cinematic realism","와이드샷 포함"], project:true },
+    ]
+  }
+];
+
+const SK = 'mj30_v1';
+let state = {};
+try { state = JSON.parse(localStorage.getItem(SK) || '{}'); } catch {}
+
+function save() { try { localStorage.setItem(SK, JSON.stringify(state)); } catch {} }
+function ikey(d, i) { return `d${d}_i${i}`; }
+function dkey(d) { return `d${d}_done`; }
+
+function updateProgress() {
+  const total = weeks.reduce((a, w) => a + w.days.length, 0);
+  const done = weeks.reduce((a, w) => a + w.days.filter(d => state[dkey(d.day)]).length, 0);
+  document.getElementById('prog-count').textContent = `${done} / ${total}`;
+  document.getElementById('prog-fill').style.width = `${Math.round(done/total*100)}%`;
+}
+
+function render() {
+  const container = document.getElementById('curriculum');
+  container.innerHTML = '';
+
+  weeks.forEach(week => {
+    const sec = document.createElement('div');
+    sec.className = 'week-section';
+
+    const wh = document.createElement('div');
+    wh.className = 'week-label';
+    wh.textContent = week.label;
+    sec.appendChild(wh);
+
+    week.days.forEach(d => {
+      const card = document.createElement('div');
+      const isDone = !!state[dkey(d.day)];
+      card.className = 'day-card' + (d.project ? ' project-card' : '') + (isDone ? ' completed' : '');
+
+      const hdr = document.createElement('div');
+      hdr.className = 'day-header';
+
+      const circ = document.createElement('button');
+      circ.className = 'circle-btn';
+      circ.setAttribute('aria-label', `Day ${d.day} 완료 토글`);
+      circ.innerHTML = CHECK_SVG;
+      circ.addEventListener('click', e => {
+        e.stopPropagation();
+        const newDone = !state[dkey(d.day)];
+        state[dkey(d.day)] = newDone;
+        d.items.forEach((_, i) => { state[ikey(d.day, i)] = newDone; });
+        save(); render(); updateProgress();
+      });
+
+      const info = document.createElement('div');
+      info.className = 'day-info';
+      info.innerHTML = `<div class="day-num">Day ${d.day}</div><div class="day-title">${d.title}</div>`;
+
+      const chev = document.createElement('span');
+      chev.className = 'chevron';
+      chev.textContent = '▾';
+
+      hdr.appendChild(circ);
+      hdr.appendChild(info);
+      hdr.appendChild(chev);
+
+      hdr.addEventListener('click', () => {
+        const wasOpen = card.classList.contains('open');
+        document.querySelectorAll('.day-card.open').forEach(c => c.classList.remove('open'));
+        if (!wasOpen) card.classList.add('open');
+      });
+
+      const itemsWrap = document.createElement('div');
+      itemsWrap.className = 'day-items';
+
+      d.items.forEach((item, idx) => {
+        const row = document.createElement('div');
+        row.className = 'item-row' + (state[ikey(d.day, idx)] ? ' checked' : '');
+
+        const box = document.createElement('div');
+        box.className = 'item-box';
+        box.innerHTML = CHECK_SVG;
+
+        const txt = document.createElement('span');
+        txt.className = 'item-text';
+        txt.textContent = item;
+
+        row.appendChild(box);
+        row.appendChild(txt);
+
+        row.addEventListener('click', e => {
+          e.stopPropagation();
+          state[ikey(d.day, idx)] = !state[ikey(d.day, idx)];
+          const allDone = d.items.every((_, i) => state[ikey(d.day, i)]);
+          state[dkey(d.day)] = allDone;
+          save(); render(); updateProgress();
+        });
+
+        itemsWrap.appendChild(row);
+      });
+
+      card.appendChild(hdr);
+      card.appendChild(itemsWrap);
+      sec.appendChild(card);
+    });
+
+    container.appendChild(sec);
+  });
+
+  updateProgress();
+}
+
+render();
+</script>
+</body>
+</html>
