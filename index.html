@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<title>나만의 앱 모음</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#faf7f2;min-height:100vh;padding-bottom:3rem}
+
+.hero{padding:2.4rem 1.4rem 1.4rem}
+.greeting{font-size:12px;color:#b5a898;letter-spacing:.08em;margin-bottom:.3rem}
+.title{font-family:'Gowun Dodum',sans-serif;font-size:1.55rem;color:#3d2e22;line-height:1.3;margin-bottom:.2rem}
+.sub{font-size:12px;color:#c4b5a6;font-weight:300}
+.date-bar{font-size:11px;color:#c4b5a6;margin-top:.9rem;padding-top:.9rem;border-top:0.5px solid rgba(0,0,0,0.07)}
+
+.section-lbl{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#c4b5a6;padding:.9rem 1.4rem .5rem}
+
+.app-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:0 1.4rem}
+
+.app-card{background:#fff;border-radius:18px;border:0.5px solid rgba(0,0,0,0.07);padding:1.1rem 1rem 1rem;cursor:pointer;transition:background .15s,transform .1s;position:relative;text-decoration:none;display:block;-webkit-tap-highlight-color:transparent}
+.app-card:active{transform:scale(0.96);background:#fdf9f5}
+.app-card.wip{cursor:default}
+.app-card.wip:active{transform:none}
+
+.app-icon{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px;margin-bottom:.75rem;overflow:hidden}
+.app-icon img{width:100%;height:100%;object-fit:cover;border-radius:12px}
+.icon-diary{background:#fef3e8}
+.icon-check{background:#edfaf4}
+.icon-dog{background:#fff0f3}
+
+.app-name{font-size:13px;font-weight:500;color:#3d2e22;margin-bottom:2px;line-height:1.3}
+.app-desc{font-size:11px;color:#b5a898;font-weight:300;line-height:1.4}
+
+.wip-badge{position:absolute;top:10px;right:10px;background:#fef3e8;color:#c4813a;border:0.5px solid rgba(196,129,58,0.25);font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;letter-spacing:.04em}
+
+.add-card{background:transparent;border-radius:18px;border:0.5px dashed rgba(0,0,0,0.12);padding:1.1rem 1rem 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;min-height:116px;transition:background .15s;-webkit-tap-highlight-color:transparent}
+.add-card:active{background:rgba(0,0,0,0.03)}
+.add-plus{width:36px;height:36px;border-radius:10px;background:rgba(0,0,0,0.04);display:flex;align-items:center;justify-content:center;margin-bottom:.5rem;font-size:20px;color:#c4b5a6;line-height:1}
+.add-txt{font-size:11px;color:#c4b5a6;text-align:center}
+
+.footer{padding:1.6rem 1.4rem 0;text-align:center;font-size:11px;color:#d4c9bd;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="greeting">안녕하세요 👋</div>
+  <div class="title">나만의 앱 모음</div>
+  <div class="sub">탭 한 번으로 바로 이동해요</div>
+  <div class="date-bar" id="date-bar"></div>
+</div>
+
+<div class="section-lbl">앱 목록</div>
+
+<div class="app-grid">
+
+  <a class="app-card" href="diary.html">
+    <div class="app-icon icon-diary">📓</div>
+    <div class="app-name">하루기록</div>
+    <div class="app-desc">가계부 · 루틴 · 식단 · 통계</div>
+  </a>
+
+  <a class="app-card" href="curriculum.html">
+    <div class="app-icon">
+      <img src="app-icon-curriculum.png" alt="미드나이저 아이콘"/>
+    </div>
+    <div class="app-name">미드나이저 30day</div>
+    <div class="app-desc">미드저니 시네마틱 챌린지</div>
+  </a>
+
+  <a class="app-card" href="ai_worker_checklist.html">
+    <div class="app-icon icon-check">✅</div>
+    <div class="app-name">AI 워커</div>
+    <div class="app-desc">체크리스트 · 업무 루틴</div>
+  </a>
+
+  <div class="app-card wip">
+    <div class="wip-badge">준비중</div>
+    <div class="app-icon icon-dog">🐾</div>
+    <div class="app-name">강아지 건강</div>
+    <div class="app-desc">가을이 · 토리 건강 기록</div>
+  </div>
+
+  <div class="add-card" onclick="alert('새 앱을 클로드에서 만들고 GitHub에 올린 후, 이 파일에 카드를 추가하면 돼요!')">
+    <div class="add-plus">+</div>
+    <div class="add-txt">앱 추가하기</div>
+  </div>
+
+</div>
+
+<div class="footer">
+  홈화면에 추가하면 앱처럼 쓸 수 있어요 🌿<br>
+  Safari → 공유 → 홈 화면에 추가
+</div>
+
+<script>
+const d = new Date();
+const days = ['일','월','화','수','목','금','토'];
+document.getElementById('date-bar').textContent =
+  (d.getMonth()+1) + '월 ' + d.getDate() + '일 ' + days[d.getDay()] + '요일';
+</script>
+</body>
+</html>
