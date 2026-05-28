@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AI 시네마틱 감성사진 커리큘럼</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#FF6B35;--orange-lt:#FF9A6B;--gold:#FFD700;
+  --bg:#0a0a0f;--bgc:#0d0d14;--bgh:#111119;--bga:#0f0f18;
+  --tx:#e8e4dc;--tx2:rgba(232,228,220,0.5);--tx3:rgba(232,228,220,0.32);--tx4:rgba(232,228,220,0.28);
+  --bd:rgba(255,255,255,0.06);--bds:rgba(255,255,255,0.045);--bdf:rgba(255,255,255,0.04)
+}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;padding-bottom:4rem;overflow-x:hidden}
+
+/* HERO */
+.hero{padding:2.8rem 1.5rem 2.2rem;border-bottom:0.5px solid var(--bd);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-80px;left:-80px;width:340px;height:340px;background:radial-gradient(circle,rgba(255,107,53,0.11) 0%,transparent 70%);pointer-events:none}
+.htag{display:inline-block;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--orange);border:0.5px solid rgba(255,107,53,0.35);padding:4px 13px;border-radius:20px;margin-bottom:1rem}
+h1{font-family:'Playfair Display',serif;font-size:clamp(1.75rem,5vw,2.3rem);font-weight:700;color:#f5f0e8;line-height:1.15;margin-bottom:.6rem}
+h1 span{color:var(--orange)}
+.hero-sub{font-size:13px;color:var(--tx2);font-weight:300;line-height:1.65;max-width:480px}
+.prow{display:flex;align-items:center;gap:10px;margin-top:1.5rem}
+.pbar{flex:1;height:3px;background:rgba(255,255,255,0.08);border-radius:2px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--orange),var(--orange-lt));border-radius:2px;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.plbl{font-size:12px;color:var(--orange);font-weight:500;white-space:nowrap}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--bd);border-bottom:0.5px solid var(--bd)}
+.si{background:var(--bg);padding:1.1rem 1rem;text-align:center}
+.sn{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:#f5f0e8;display:block;line-height:1;margin-bottom:4px;transition:all .3s}
+.sl{font-size:10px;color:rgba(232,228,220,0.38);letter-spacing:.09em;text-transform:uppercase}
+
+/* PHASE */
+.phase-hdr{font-size:10px;letter-spacing:.11em;text-transform:uppercase;padding:.65rem 1.4rem;color:rgba(232,228,220,0.27);background:rgba(255,255,255,0.015);border-top:0.5px solid var(--bdf);border-bottom:0.5px solid var(--bdf);display:flex;align-items:center;gap:7px}
+.pdot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0;transition:background .4s}
+.pdot.off{background:rgba(255,255,255,0.13)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--bds)}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:800px){.grid{grid-template-columns:repeat(4,1fr)}}
+
+/* DAY CARD */
+.dc{background:var(--bgc);padding:.9rem 1rem .85rem;cursor:pointer;transition:background .14s;position:relative;overflow:hidden;border-left:2px solid transparent;user-select:none}
+.dc:hover{background:var(--bgh)}
+.dc.done{border-left-color:var(--orange)}
+.dc.active{border-left-color:#FFB347;background:var(--bga)}
+.dc.locked{opacity:.4;cursor:default;pointer-events:none}
+.dnum{font-size:10px;color:var(--tx4);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.dc.done .dnum{color:var(--orange)}
+.dc.active .dnum{color:#FFB347}
+.dtitle{font-size:13px;font-weight:500;color:var(--tx);margin-bottom:2px;line-height:1.3}
+.dtag{font-size:10px;color:var(--tx3);font-weight:300;line-height:1.4}
+.dc-date{font-size:10px;color:rgba(255,107,53,0.6);margin-top:4px;display:none}
+.dc.done .dc-date{display:block}
+.sbadge{position:absolute;top:9px;right:9px;width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;transition:all .2s}
+.sbadge.done{background:rgba(255,107,53,0.14);color:var(--orange)}
+.sbadge.idle{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.3)}
+.sbadge.locked{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.18)}
+
+/* MEMO BTN */
+.memo-btn{position:absolute;bottom:7px;right:8px;font-size:11px;color:rgba(232,228,220,0.25);background:none;border:none;cursor:pointer;padding:2px 4px;transition:color .15s;display:none}
+.dc:hover .memo-btn,.dc.done .memo-btn{display:block}
+.memo-btn:hover{color:var(--orange)}
+.memo-dot{position:absolute;bottom:6px;right:22px;width:5px;height:5px;border-radius:50%;background:var(--orange);opacity:.6;display:none}
+
+/* REWARD CARD */
+.rcard{grid-column:1/-1;background:var(--bgc);border-top:0.5px solid rgba(255,255,255,0.05);border-bottom:0.5px solid rgba(255,255,255,0.05);transition:background .14s}
+.rcard.earned-card{cursor:pointer}
+.rcard.earned-card:hover{background:#131320}
+.rcard.locked-card{cursor:default}
+.rinner{padding:1rem 1.2rem;display:flex;align-items:center;gap:14px}
+.ricon-wrap{position:relative;flex-shrink:0}
+.ricon{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:all .3s}
+.ricon.earned{background:rgba(255,215,0,0.09);border:1px solid rgba(255,215,0,0.22)}
+.ricon.lkd{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.07);filter:grayscale(1);opacity:.4}
+.rshine{position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#3d2e00}
+.rtxt{flex:1;min-width:0}
+.rtitle{font-size:13px;font-weight:500;color:#f5f0e8;margin-bottom:2px}
+.rtitle.dim{color:rgba(232,228,220,0.38)}
+.rdesc{font-size:11px;color:var(--tx2);font-weight:300;line-height:1.45}
+.rpill{display:inline-block;font-size:10px;padding:2px 9px;border-radius:10px;margin-top:5px;font-weight:500}
+.rpill.gold{background:rgba(255,215,0,0.11);color:var(--gold);border:0.5px solid rgba(255,215,0,0.24)}
+.rpill.lkd{background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.22);border:0.5px solid rgba(255,255,255,0.08)}
+.rpill.final{background:rgba(255,107,53,0.1);color:var(--orange);border:0.5px solid rgba(255,107,53,0.25)}
+
+/* TOAST */
+.toast{position:fixed;bottom:2rem;left:50%;transform:translateX(-50%) translateY(80px);background:#1a1a24;border:1px solid rgba(255,215,0,0.3);border-radius:12px;padding:.7rem 1.4rem;display:flex;align-items:center;gap:10px;white-space:nowrap;opacity:0;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;pointer-events:none;z-index:200;min-width:220px;justify-content:center}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.t-icon{font-size:18px}
+.t-txt{font-size:13px;font-weight:500;color:#f5f0e8}
+.t-sub{font-size:11px;color:rgba(232,228,220,0.5)}
+
+/* MODAL BASE */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:300;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal-box{background:#12121c;border-radius:16px;padding:1.8rem 1.8rem 1.5rem;max-width:340px;width:100%;animation:popIn .4s cubic-bezier(.34,1.56,.64,1)}
+@keyframes popIn{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+
+/* BADGE MODAL */
+.badge-modal{border:1px solid rgba(255,215,0,0.25);text-align:center}
+.m-icon{font-size:52px;display:block;margin-bottom:.8rem}
+.m-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:#f5f0e8;margin-bottom:.4rem}
+.m-sub{font-size:12px;color:rgba(232,228,220,0.5);margin-bottom:1.2rem;line-height:1.5}
+.m-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+
+/* MEMO MODAL */
+.memo-modal{border:1px solid rgba(255,255,255,0.08)}
+.memo-modal h3{font-size:14px;font-weight:500;color:#f5f0e8;margin-bottom:.3rem}
+.memo-modal .m-daytag{font-size:11px;color:var(--tx2);margin-bottom:1rem}
+.memo-modal textarea{width:100%;background:rgba(255,255,255,0.04);border:0.5px solid rgba(255,255,255,0.1);border-radius:8px;color:#e8e4dc;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;line-height:1.6;padding:.8rem;resize:vertical;min-height:100px;outline:none}
+.memo-modal textarea:focus{border-color:rgba(255,107,53,0.4)}
+.memo-modal textarea::placeholder{color:rgba(232,228,220,0.25)}
+.memo-save-info{font-size:11px;color:rgba(232,228,220,0.3);margin-top:.5rem}
+
+/* CERTIFICATE MODAL */
+.cert-modal{border:1px solid rgba(255,215,0,0.3);text-align:center}
+.cert-box{background:linear-gradient(135deg,#12121c 0%,#1a1220 100%);border:1px solid rgba(255,215,0,0.2);border-radius:12px;padding:1.5rem 1.2rem;margin-bottom:1rem}
+.cert-crown{font-size:40px;display:block;margin-bottom:.6rem}
+.cert-title{font-family:'Playfair Display',serif;font-size:1rem;color:var(--gold);margin-bottom:.3rem;letter-spacing:.05em}
+.cert-name{font-family:'Playfair Display',serif;font-size:1.4rem;color:#f5f0e8;margin-bottom:.3rem}
+.cert-sub{font-size:11px;color:rgba(232,228,220,0.45);line-height:1.5;margin-bottom:.8rem}
+.cert-date{font-size:10px;color:rgba(255,215,0,0.5);letter-spacing:.08em;text-transform:uppercase}
+.cert-badges{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:.8rem 0 0}
+.cert-badge-item{font-size:18px}
+
+/* BUTTONS */
+.btn-primary{background:var(--orange);color:#fff;border:none;padding:.6rem 1.3rem;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.btn-primary:hover{background:#e55e28}
+.btn-ghost{background:transparent;color:rgba(232,228,220,0.5);border:0.5px solid rgba(255,255,255,0.15);padding:.6rem 1.3rem;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.btn-ghost:hover{background:rgba(255,255,255,0.05)}
+.btn-gold{background:rgba(255,215,0,0.12);color:var(--gold);border:0.5px solid rgba(255,215,0,0.3);padding:.6rem 1.3rem;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s}
+.btn-gold:hover{background:rgba(255,215,0,0.2)}
+
+/* PARTICLE */
+@keyframes particleFly{0%{transform:translate(0,0) scale(1);opacity:1}100%{transform:translate(var(--dx),var(--dy)) scale(0);opacity:0}}
+.par{position:fixed;width:7px;height:7px;border-radius:50%;pointer-events:none;z-index:400;animation:particleFly .8s ease-out forwards}
+
+@keyframes starBurst{0%{transform:scale(0) rotate(-20deg);opacity:0}70%{transform:scale(1.25) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0deg);opacity:1}}
+.burst .ricon{animation:starBurst .5s cubic-bezier(.34,1.56,.64,1) both}
+
+/* CTA */
+.cta-wrap{padding:1.5rem 1.5rem 0}
+.cta{display:block;width:100%;background:var(--orange);color:#fff;border:none;padding:1rem 1.5rem;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;text-align:center;transition:background .14s,transform .1s}
+.cta:hover{background:#e55e28}
+.cta:active{transform:scale(.99)}
+footer{padding:2rem 1.5rem 0;text-align:center;font-size:11px;color:rgba(232,228,220,0.18);letter-spacing:.07em}
+</style>
+</head>
+<body>
+
+<div class="toast" id="toast">
+  <span class="t-icon" id="t-icon"></span>
+  <div><div class="t-txt" id="t-txt"></div><div class="t-sub" id="t-sub"></div></div>
+</div>
+
+<!-- BADGE MODAL -->
+<div class="modal-bg" id="badge-modal">
+  <div class="modal-box badge-modal">
+    <span class="m-icon" id="m-icon"></span>
+    <div class="m-title" id="m-title"></div>
+    <div class="m-sub" id="m-sub"></div>
+    <div class="m-btns">
+      <button class="btn-primary" id="m-quiz">퀴즈 풀기 ↗</button>
+      <button class="btn-ghost" id="m-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEMO MODAL -->
+<div class="modal-bg" id="memo-modal">
+  <div class="modal-box memo-modal">
+    <h3 id="memo-title"></h3>
+    <div class="m-daytag" id="memo-daytag"></div>
+    <textarea id="memo-textarea" placeholder="오늘 만든 프롬프트, 느낀 점, 참고 키워드 등을 자유롭게 기록해봐요 ✍️" rows="5"></textarea>
+    <div class="memo-save-info">저장하면 브라우저에 기록됩니다.</div>
+    <div class="m-btns" style="margin-top:.8rem">
+      <button class="btn-primary" id="memo-save">저장하기</button>
+      <button class="btn-ghost" id="memo-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- CERTIFICATE MODAL -->
+<div class="modal-bg" id="cert-modal">
+  <div class="modal-box cert-modal">
+    <div class="cert-box" id="cert-content">
+      <span class="cert-crown">👑</span>
+      <div class="cert-title">CERTIFICATE OF COMPLETION</div>
+      <div class="cert-name">AI 시네마틱 마스터</div>
+      <div class="cert-sub">30일 커리큘럼을 완주하고<br>나만의 시네마틱 감성을 완성했습니다.</div>
+      <div class="cert-date" id="cert-date"></div>
+      <div class="cert-badges" id="cert-badges"></div>
+    </div>
+    <div class="m-btns">
+      <button class="btn-gold" id="cert-save">이미지로 저장 ↓</button>
+      <button class="btn-ghost" id="cert-close">닫기</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+<div class="hero">
+  <div class="htag">🎬 Midjourney Master</div>
+  <h1>AI 시네마틱<br><span>감성사진</span> 커리큘럼</h1>
+  <p class="hero-sub">단순 AI 생성이 아닌 — 영화 장면 설계, 감정 연출,<br>나만의 시그니처 스타일 구축을 목표로 합니다.</p>
+  <div class="prow">
+    <div class="pbar"><div class="pfill" id="pfill"></div></div>
+    <span class="plbl" id="plbl"></span>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="si"><span class="sn" id="s-total">30</span><span class="sl">Total Days</span></div>
+  <div class="si"><span class="sn" id="s-done">0</span><span class="sl">Completed</span></div>
+  <div class="si"><span class="sn" id="s-badges">0</span><span class="sl">Badges</span></div>
+</div>
+
+<div id="curriculum-root"></div>
+
+<div class="cta-wrap">
+  <button class="cta" id="cta-btn">→ Day 1 시작하기</button>
+</div>
+<footer>AI CINEMATIC MASTER CURRICULUM · 30 DAYS</footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+const DAYS=[
+  {id:1,title:'기초 시스템',tag:'U/V/Remix · 업스케일'},
+  {id:2,title:'거리감',tag:'클로즈업 · 와이드샷'},
+  {id:3,title:'렌즈',tag:'24mm – 85mm'},
+  {id:4,title:'조명',tag:'Blue Hour · Rainy Night'},
+  {id:5,title:'감정 무드',tag:'Lonely · Quiet Tension'},
+  {id:6,title:'구도',tag:'Off-Center · Leading Lines'},
+  {id:7,title:'색감',tag:'Blue · Golden · Desaturated'},
+  {id:8,title:'시선 & 감정연출',tag:'Eye Contact · Hidden Face'},
+  {id:9,title:'현실감',tag:'candid · AI 느낌 제거'},
+  {id:10,title:'한국 배우 무드',tag:'차가운 미남 · 꽃미남'},
+  {id:11,title:'패션 & 스타일링',tag:'코트 · 레이어드'},
+  {id:12,title:'날씨 연출',tag:'비 · 눈 · 안개'},
+  {id:13,title:'도시 무드',tag:'새벽 · 편의점 · 지하철'},
+  {id:14,title:'네온 & 사이버',tag:'neon noir · teal & orange'},
+  {id:15,title:'영화 스틸 스타일',tag:'movie still · freeze frame'},
+  {id:16,title:'인디영화 감성',tag:'muted · handheld realism'},
+  {id:17,title:'감정 클로즈업',tag:'눈물 직전 · 눈빛 연출'},
+  {id:18,title:'관계 & 거리감',tag:'두 사람 · 감정 단절'},
+  {id:19,title:'공간 연출 심화',tag:'창문 · 프레임 속 프레임'},
+  {id:20,title:'빛 심화',tag:'rim light · silhouette'},
+  {id:21,title:'컬러 시그니처',tag:'나만의 블루톤'},
+  {id:22,title:'캐릭터 고정 기초',tag:'consistency · reference'},
+  {id:23,title:'캐릭터 고정 심화',tag:'시리즈 · 장면 연결'},
+  {id:24,title:'영화 포스터 스타일',tag:'타이포 · 포스터 구도'},
+  {id:25,title:'앨범커버 감성',tag:'k-indie · nostalgic'},
+  {id:26,title:'패션 화보 감성',tag:'editorial · luxury'},
+  {id:27,title:'장면 스토리텔링',tag:'한 컷 서사 · 감정 흐름'},
+  {id:28,title:'프롬프트 시스템',tag:'키워드 정리 · 조합법'},
+  {id:29,title:'개인 스타일 확립',tag:'나만의 무드 · 시그니처'},
+  {id:30,title:'최종 프로젝트',tag:'4컷 영화 시리즈 완성'},
+];
+
+const REWARDS=[
+  {after:3,icon:'📷',title:'카메라 마스터',desc:'기초 시스템 · 거리감 · 렌즈 완파',quiz:'Day 1~3 카메라 기초 복습 퀴즈를 내줘',pill:'GOLD BADGE 획득',type:'gold'},
+  {after:7,icon:'🎞️',title:'시네마틱 감각',desc:'조명 · 무드 · 구도 · 색감 마스터',quiz:'Day 4~7 시네마틱 감각 복습 퀴즈를 내줘',pill:'GOLD BADGE 획득',type:'gold'},
+  {after:9,icon:'🎭',title:'감정 연출가',desc:'시선 연출 · 현실감 마스터',quiz:'Day 8~9 감정 연출 복습 퀴즈를 내줘',pill:'BADGE 획득',type:'gold'},
+  {after:13,icon:'🏙️',title:'도시의 밤',desc:'한국 무드 · 패션 · 날씨 · 도시 마스터',quiz:'Day 10~13 도시 무드 복습 퀴즈를 내줘',pill:'BADGE 획득',type:'gold'},
+  {after:16,icon:'🎬',title:'인디 필름메이커',desc:'네온 · 영화 스틸 · 인디 감성 마스터',quiz:'Day 14~16 인디 필름 복습 퀴즈를 내줘',pill:'BADGE 획득',type:'gold'},
+  {after:20,icon:'👁️',title:'감정의 눈',desc:'감정 클로즈업 · 관계 · 공간 · 빛 마스터',quiz:'Day 17~20 감정 심화 복습 퀴즈를 내줘',pill:'BADGE 획득',type:'gold'},
+  {after:24,icon:'🎨',title:'시그니처 아티스트',desc:'컬러 · 캐릭터 · 포스터 마스터',quiz:'Day 21~24 시그니처 스타일 퀴즈를 내줘',pill:'BADGE 획득',type:'gold'},
+  {after:30,icon:'👑',title:'AI 시네마틱 마스터',desc:'30일 전체 완주 — 최고 등급 뱃지',quiz:'30일 커리큘럼 마스터 최종 테스트를 해줘',pill:'FINAL BOSS',type:'final'},
+];
+
+const PHASES=[
+  {label:'Phase 1 — 기초 시스템 (Day 1–9)',days:[1,2,3,4,5,6,7,8,9]},
+  {label:'Phase 2 — 현실감 & 스타일 (Day 10–16)',days:[10,11,12,13,14,15,16]},
+  {label:'Phase 3 — 심화 연출 (Day 17–24)',days:[17,18,19,20,21,22,23,24]},
+  {label:'Phase 4 — 나만의 스타일 완성 (Day 25–30)',days:[25,26,27,28,29,30]},
+];
+
+function load(k,def){try{return JSON.parse(localStorage.getItem(k))||def;}catch{return def;}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v));}
+
+let completed=new Set(load('ai_done',[1,2,3,4,5,6,7]));
+let dates=load('ai_dates',{});
+let memos=load('ai_memos',{});
+
+function earnedBadges(){return REWARDS.filter(r=>completed.size>=r.after).length;}
+function nextDay(){return [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30].find(i=>!completed.has(i));}
+
+function fmtDate(iso){
+  if(!iso)return'';
+  const d=new Date(iso);
+  return (d.getMonth()+1)+'월 '+d.getDate()+'일 완료';
+}
+
+function updateStats(){
+  const d=completed.size;
+  document.getElementById('s-done').textContent=d;
+  document.getElementById('s-badges').textContent=earnedBadges();
+  document.getElementById('pfill').style.width=Math.round(d/30*1000)/10+'%';
+  document.getElementById('plbl').textContent=d+' / 30 완료';
+  const next=nextDay();
+  const btn=document.getElementById('cta-btn');
+  if(!next){btn.textContent='🏆 수료증 보기';}
+  else{const dobj=DAYS.find(x=>x.id===next);btn.textContent='→ Day '+next+' 계속하기 · '+(dobj?dobj.title:'');}
+}
+
+let toastTimer;
+function showToast(icon,txt,sub){
+  clearTimeout(toastTimer);
+  const t=document.getElementById('toast');
+  document.getElementById('t-icon').textContent=icon;
+  document.getElementById('t-txt').textContent=txt;
+  document.getElementById('t-sub').textContent=sub||'';
+  t.classList.remove('show');void t.offsetWidth;t.classList.add('show');
+  toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function spawnParticles(x,y){
+  const colors=['#FF6B35','#FFD700','#FF9A6B','#ffffff','#FFB347','#FF6B35'];
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div');p.className='par';
+    const angle=Math.random()*360,dist=50+Math.random()*80;
+    const dx=Math.cos(angle*Math.PI/180)*dist,dy=Math.sin(angle*Math.PI/180)*dist-30;
+    p.style.cssText=`left:${x}px;top:${y}px;background:${colors[i%colors.length]};--dx:${dx}px;--dy:${dy}px;animation-duration:${0.6+Math.random()*0.4}s`;
+    document.body.appendChild(p);setTimeout(()=>p.remove(),1200);
+  }
+}
+
+// BADGE MODAL
+function openBadgeModal(reward){
+  document.getElementById('m-icon').textContent=reward.icon;
+  document.getElementById('m-title').textContent=reward.title+' 획득!';
+  document.getElementById('m-sub').textContent=reward.desc;
+  document.getElementById('badge-modal').classList.add('open');
+  document.getElementById('m-quiz').onclick=()=>{
+    document.getElementById('badge-modal').classList.remove('open');
+    prompt('클로드에 붙여넣기:', reward.quiz);
+  };
+  document.getElementById('m-close').onclick=()=>document.getElementById('badge-modal').classList.remove('open');
+}
+
+// MEMO MODAL
+let memoTargetId=null;
+function openMemoModal(id,e){
+  e&&e.stopPropagation();
+  memoTargetId=id;
+  const d=DAYS.find(x=>x.id===id);
+  document.getElementById('memo-title').textContent='Day '+id+' · '+d.title;
+  document.getElementById('memo-daytag').textContent=d.tag;
+  document.getElementById('memo-textarea').value=memos[id]||'';
+  document.getElementById('memo-modal').classList.add('open');
+}
+document.getElementById('memo-save').onclick=()=>{
+  if(memoTargetId){
+    const val=document.getElementById('memo-textarea').value.trim();
+    if(val) memos[memoTargetId]=val; else delete memos[memoTargetId];
+    save('ai_memos',memos);
+    showToast('📝','메모 저장 완료','Day '+memoTargetId+' 기록이 저장됐어요');
+  }
+  document.getElementById('memo-modal').classList.remove('open');
+  render();
+};
+document.getElementById('memo-close').onclick=()=>document.getElementById('memo-modal').classList.remove('open');
+
+// CERTIFICATE MODAL
+function openCertModal(){
+  const now=new Date();
+  document.getElementById('cert-date').textContent=now.getFullYear()+'년 '+(now.getMonth()+1)+'월 '+now.getDate()+'일 수료';
+  const badgesHTML=REWARDS.filter(r=>completed.size>=r.after).map(r=>`<span class="cert-badge-item">${r.icon}</span>`).join('');
+  document.getElementById('cert-badges').innerHTML=badgesHTML;
+  document.getElementById('cert-modal').classList.add('open');
+}
+document.getElementById('cert-close').onclick=()=>document.getElementById('cert-modal').classList.remove('open');
+document.getElementById('cert-save').onclick=()=>{
+  const el=document.getElementById('cert-content');
+  if(typeof html2canvas!=='undefined'){
+    html2canvas(el,{backgroundColor:'#12121c',scale:2}).then(canvas=>{
+      const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png');
+      a.download='AI_시네마틱_마스터_수료증.png';
+      a.click();
+    });
+  } else {
+    alert('이미지 저장 기능을 사용하려면 인터넷 연결이 필요합니다.');
+  }
+};
+
+// TOGGLE DAY
+function toggleDay(id,el){
+  const rect=el.getBoundingClientRect();
+  const cx=rect.left+rect.width/2,cy=rect.top+rect.height/2;
+  const wasDone=completed.has(id);
+  if(wasDone){
+    completed.delete(id);
+    delete dates[id];
+    showToast('↩️','Day '+id+' 완료 취소','다시 도전해봐요!');
+  } else {
+    completed.add(id);
+    dates[id]=new Date().toISOString();
+    spawnParticles(cx,cy);
+    showToast('✅','Day '+id+' 완료!','잘하고 있어요 🎬');
+    const reward=REWARDS.find(r=>r.after===id);
+    if(reward&&completed.size>=reward.after){
+      setTimeout(()=>{
+        const rEl=document.getElementById('r-'+reward.after);
+        if(rEl){const rr=rEl.getBoundingClientRect();spawnParticles(rr.left+rr.width/2,rr.top+rr.height/2);rEl.classList.add('burst');}
+        setTimeout(()=>openBadgeModal(reward),400);
+      },500);
+    }
+    if(completed.size===30){setTimeout(openCertModal,1000);}
+  }
+  save('ai_done',[...completed]);
+  save('ai_dates',dates);
+  updateStats();render();
+}
+
+function rewardClick(afterId){
+  const reward=REWARDS.find(r=>r.after===afterId);
+  if(reward&&completed.size>=reward.after)openBadgeModal(reward);
+}
+
+function render(){
+  let html='';
+  PHASES.forEach(ph=>{
+    const allDone=ph.days.every(d=>completed.has(d));
+    html+=`<div class="phase-hdr"><span class="pdot${allDone?'':' off'}"></span>${ph.label}</div><div class="grid">`;
+    ph.days.forEach(id=>{
+      const d=DAYS.find(x=>x.id===id);
+      const done=completed.has(id);
+      const isNext=nextDay()===id;
+      const maxDone=completed.size>0?Math.max(...completed):0;
+      const locked=!done&&id>maxDone+1&&!isNext;
+      let cls='dc'+(done?' done':isNext?' active':locked?' locked':'');
+      let bcls=done?'sbadge done':locked?'sbadge locked':'sbadge idle';
+      const hasMemo=!!memos[id];
+      html+=`<div class="${cls}" id="dc-${id}" onclick="${locked?'':('toggleDay('+id+',this)')}">`;
+      html+=`<div class="${bcls}">${done?'✓':'○'}</div>`;
+      html+=`<div class="dnum">Day ${String(id).padStart(2,'0')}</div>`;
+      html+=`<div class="dtitle">${d.title}</div>`;
+      html+=`<div class="dtag">${d.tag}</div>`;
+      if(done&&dates[id]) html+=`<div class="dc-date">${fmtDate(dates[id])}</div>`;
+      if(hasMemo) html+=`<div class="memo-dot"></div>`;
+      html+=`<button class="memo-btn" onclick="openMemoModal(${id},event)" title="메모">✏️</button>`;
+      html+=`</div>`;
+      const rw=REWARDS.find(r=>r.after===id);
+      if(rw){
+        const earned=completed.size>=rw.after;
+        html+=`<div class="rcard ${earned?'earned-card':'locked-card'}" id="r-${rw.after}" ${earned?`onclick="rewardClick(${rw.after})"`:''}>`;
+        html+=`<div class="rinner"><div class="ricon-wrap">`;
+        html+=`<div class="ricon ${earned?'earned':'lkd'}">${rw.icon}</div>`;
+        if(earned) html+=`<div class="rshine">★</div>`;
+        html+=`</div><div class="rtxt">`;
+        html+=`<div class="rtitle${earned?'':' dim'}">${rw.title}</div>`;
+        html+=`<div class="rdesc">${rw.desc}</div>`;
+        html+=`<span class="rpill ${earned?rw.type:'lkd'}">${earned?rw.pill:'LOCKED'}</span>`;
+        html+=`</div></div></div>`;
+      }
+    });
+    html+=`</div>`;
+  });
+  document.getElementById('curriculum-root').innerHTML=html;
+}
+
+document.getElementById('cta-btn').onclick=function(){
+  const next=nextDay();
+  if(!next){openCertModal();return;}
+};
+
+render();updateStats();
+</script>
+</body>
+</html>
