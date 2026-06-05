@@ -926,7 +926,7 @@ function CalendarModal({onClose,onSelect,t,todayIso}) {
 
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-  const getLocalDate=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.  const getLocalDate=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const getLocalDate=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
   const [iso,setIso]=useState(()=>getLocalDate());
   useEffect(()=>{ const id=setInterval(()=>{ const today=getLocalDate(); setIso(prev=>prev!==today?today:prev); },60000); return ()=>clearInterval(id); },[]);
 
