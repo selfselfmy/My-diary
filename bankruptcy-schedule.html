@@ -32,14 +32,10 @@ html,body{min-height:100vh;background:var(--bg3);font-family:-apple-system,Blink
 .tab-btn:not(.active):active{background:var(--bg2)}
 .tab-content{display:none}
 .tab-content.active{display:block}
-
-/* summary */
 .summary-row{display:flex;gap:8px;margin-bottom:16px}
 .summary-card{flex:1;background:var(--bg2);border-radius:var(--radius);padding:10px 12px;text-align:center}
 .summary-num{font-size:22px;font-weight:600;color:var(--text)}
 .summary-lbl{font-size:11px;color:var(--text2);margin-top:2px}
-
-/* schedule */
 .day-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
 .day-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .day-header:active{background:var(--bg2)}
@@ -73,8 +69,6 @@ html,body{min-height:100vh;background:var(--bg3);font-family:-apple-system,Blink
 .memo-label{font-size:12px;color:var(--text2);margin-bottom:6px}
 .memo-box{width:100%;font-size:13px;padding:8px 10px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--bg2);color:var(--text);resize:none;min-height:56px;font-family:inherit;line-height:1.5}
 .memo-box:focus{outline:none;border-color:var(--purple)}
-
-/* docs */
 .doc-header-box{background:var(--bg2);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:14px;text-align:center}
 .doc-header-title{font-size:16px;font-weight:600;color:var(--text);margin-bottom:4px}
 .doc-header-sub{font-size:12px;color:var(--text2)}
@@ -106,10 +100,7 @@ html,body{min-height:100vh;background:var(--bg3);font-family:-apple-system,Blink
 .db-court{background:#F1EFE8;color:#444441}
 .db-payinfo{background:#EEEDFE;color:#3C3489}
 .done-toggle-btn{width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:10px 0;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:8px;-webkit-tap-highlight-color:transparent}
-.done-toggle-btn:active{color:var(--text)}
 .done-line{flex:1;height:0.5px;background:var(--border)}
-
-/* scripts */
 .script-card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);margin-bottom:12px;overflow:hidden}
 .script-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .script-header:active{background:var(--bg2)}
@@ -118,8 +109,8 @@ html,body{min-height:100vh;background:var(--bg3);font-family:-apple-system,Blink
 .script-body{padding:12px 16px 14px;border-top:0.5px solid var(--border)}
 .script-bubble{background:var(--bg2);border-radius:var(--radius);border-left:3px solid var(--purple);padding:12px 14px;font-size:13px;color:var(--text);line-height:1.7;margin-bottom:10px}
 .script-tip{font-size:12px;color:var(--text2);display:flex;align-items:flex-start;gap:6px}
-
-/* calc */
+.kepco-box{background:var(--bg2);border-radius:var(--radius);padding:11px 14px;margin-bottom:14px;font-size:12px;color:var(--text2);line-height:1.8;border-left:3px solid var(--purple)}
+.kepco-box strong{color:var(--text);font-weight:500}
 .calc-section-title{font-size:13px;font-weight:500;color:var(--text2);margin:14px 0 6px}
 .calc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--border)}
 .calc-row:last-of-type{border-bottom:none}
@@ -149,7 +140,6 @@ input:checked+.slid:before{transform:translateX(16px);background:#fff}
 <body>
 <div class="app-wrap">
   <div class="app-title"><i class="ti ti-clipboard-list" style="font-size:20px;color:var(--purple)"></i>파산준비 스케줄</div>
-
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('schedule',this)"><i class="ti ti-calendar" style="font-size:14px"></i><br>스케줄</button>
     <button class="tab-btn" onclick="switchTab('docs',this)"><i class="ti ti-files" style="font-size:14px"></i><br>서류목록</button>
@@ -196,20 +186,26 @@ input:checked+.slid:before{transform:translateX(16px);background:#fff}
   </div>
 
   <div id="tab-calc" class="tab-content">
+    <div class="kepco-box">
+      <strong><i class="ti ti-bolt" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>한전 고효율 가전 지원사업 (정부)</strong><br>
+      기초생활수급자 구매가의 30% 환급 · 가구당 최대 30만원<br>
+      에너지효율 1등급 제품만 해당 · 예산 소진 시 조기 종료<br>
+      문의: <strong>1551-1212</strong> · 신청: support.kepco.co.kr
+    </div>
     <div class="calc-section-title">정가 입력</div>
     <div class="input-row"><input class="price-input" type="number" id="original" value="900000" step="10000" oninput="calc()"><span class="unit">원</span></div>
     <div class="calc-section-title">할인 항목</div>
     <div class="calc-row"><div><div class="calc-label">사이트 자체 할인</div><div class="input-row"><input class="price-input" type="number" id="site" value="210000" step="1000" oninput="calc()"><span class="unit">원</span></div></div><div class="calc-val" id="v-site"></div></div>
     <div class="calc-row"><div><div class="calc-label">신한카드 8% 할인</div><div class="tog-row"><label class="toggle"><input type="checkbox" id="tog-shinhan" checked onchange="calc()"><span class="slid"></span></label><span class="tog-label">적용</span></div><div class="badge-warn"><i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px"></i> 케이패쓰 적용 여부 확인 필요</div></div><div class="calc-val" id="v-shinhan"></div></div>
-    <div class="calc-row"><div><div class="calc-label">수급자 30% 환급</div><div class="tog-row"><label class="toggle"><input type="checkbox" id="tog-welfare" checked onchange="calc()"><span class="slid"></span></label><span class="tog-label">적용</span></div><div class="badge-warn"><i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px"></i> 예산 소진 여부 확인 필요</div></div><div class="calc-val" id="v-welfare"></div></div>
+    <div class="calc-row"><div><div class="calc-label">한전 수급자 30% 환급</div><div class="tog-row"><label class="toggle"><input type="checkbox" id="tog-welfare" checked onchange="calc()"><span class="slid"></span></label><span class="tog-label">적용</span></div><div class="badge-warn"><i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px"></i> 예산 소진 여부 확인 · 최대 30만원</div></div><div class="calc-val" id="v-welfare"></div></div>
     <div class="calc-row"><div><div class="calc-label">네이버 포인트</div><div class="tog-row"><label class="toggle"><input type="checkbox" id="tog-naver" checked onchange="calc()"><span class="slid"></span></label><span class="tog-label">적용</span></div></div><div class="calc-val" id="v-naver"></div></div>
     <div class="result-card">
       <div class="result-label">즉시 부담금 (결제 시점)</div><div class="result-price" id="pay-now"></div>
       <div class="divider"></div>
-      <div class="result-label">수급자 환급 후 최종 부담금</div><div class="result-price" id="pay-final"></div>
+      <div class="result-label">한전 환급 후 최종 부담금</div><div class="result-price" id="pay-final"></div>
       <div class="result-sub" id="result-sub"></div>
     </div>
-    <p class="save-hint" style="margin-top:10px"><i class="ti ti-info-circle" style="font-size:13px;vertical-align:-1px"></i> 수급자 환급은 구매 후 서류 제출로 별도 처리</p>
+    <p class="save-hint" style="margin-top:10px"><i class="ti ti-info-circle" style="font-size:13px;vertical-align:-1px"></i> 한전 환급은 구매 후 support.kepco.co.kr 에서 신청</p>
   </div>
 </div>
 
@@ -218,7 +214,7 @@ const DAYS=[
   {id:'d0610',date:'6월 10일 (수)',label:'오늘',badge:'badge-today',subtitle:'국민은행 방문 + 건조기 문의',tasks:[
     {id:'t01',tag:'bank',tagLabel:'은행',text:'국민은행 방문',sub:'파산용: 통장거래내역서 최근 5년 (입출금 단면인쇄, 최근 2년 내 통장 전부)\n수급비용: 청년주택드림 청약통장 가입확인서 (개설일+납입기간)\n준비물: 신분증'},
     {id:'t02',tag:'phone',tagLabel:'전화',text:'신한카드 1544-7000',sub:'"삼성전자 20% 할인 행사에 신한 케이패쓰 체크카드도 적용되나요?"'},
-    {id:'t03',tag:'phone',tagLabel:'전화',text:'삼성전자 1588-3366',sub:'"기초생활수급자 30% 환급 혜택 지금 신청 가능한지, 예산 남아있는지 확인하고 싶어요."'},
+    {id:'t03',tag:'phone',tagLabel:'전화',text:'한전 콜센터 1551-1212',sub:'"기초생활수급자인데 고효율 가전제품 구매비용 지원사업 신청 가능한지, 예산 남아있는지, 과거 수혜 이력 있는지 확인하고 싶어요."'},
   ]},
   {id:'d0611',date:'6월 11일 (목)',label:'평일',badge:'badge-weekday',subtitle:'기관 전화·팩스 요청 집중일',tasks:[
     {id:'t04',tag:'phone',tagLabel:'전화',text:'건강보험공단 1577-1000',sub:'자격득실확인서 · 납부확인서(10년) · 미납내역서 팩스/이메일 요청'},
@@ -286,7 +282,7 @@ const DOC_GROUPS=[
     {id:'dc22',bl:'카드사',bc:'db-card',text:'신용카드 사용내역서 (최근 3년)',sub:'사용한 카드사 전부'},
   ]},
   {id:'g10',title:'보험사 (FAX)',items:[
-    {id:'dc23',bl:'보험사',bc:'db-ins',text:'보험가입조회서',sub:'본인·배우자·자녀 각 1통'},
+    {id:'dc23',bl:'보험사',bc:'db-ins',text:'보험가입조회서'},
     {id:'dc24',bl:'보험사',bc:'db-ins',text:'(예상)해지환급금내역서',sub:'유지·실효·휴면 보험 모두 포함'},
   ]},
   {id:'g11',title:'세무서 (평일만)',items:[
@@ -308,20 +304,19 @@ const SCRIPTS=[
   {id:'s04',org:'카드사 (동일 스크립트)',num:'카드 뒷면 고객센터',day:'목요일 (6/11)',script:'안녕하세요, 개인파산 신청 준비 중인데요. 신용카드 사용내역서 최근 3년치 발급 요청드리려고요. 팩스나 이메일로 받을 수 있을까요?',tip:'사용한 카드사 전부 동일하게 요청'},
   {id:'s05',org:'보험사 (동일 스크립트)',num:'보험증권 뒷면 번호',day:'목요일 (6/11)',script:'안녕하세요, 개인파산 신청 준비 중인데요. 보험가입조회서랑 예상 해지환급금 내역서 발급 요청드리려고요. 팩스나 이메일로 받을 수 있을까요?',tip:'가입한 보험사 전부 동일하게 요청'},
   {id:'s06',org:'신한카드 (건조기 문의)',num:'1544-7000',day:'오늘 (6/10)',script:'안녕하세요, 삼성전자 20% 할인 행사 관련해서 문의드리는데요. 신한 케이패쓰 체크카드도 이번 행사 적용이 되나요?',tip:'결과 확인 후 건조기 할인 탭에서 토글 조정하기'},
-  {id:'s07',org:'삼성전자 (건조기 문의)',num:'1588-3366',day:'오늘 (6/10)',script:'안녕하세요, 기초생활수급자 30% 환급 혜택 관련해서 문의드리는데요. 지금도 신청 가능한지, 예산이 남아있는지 확인하고 싶어요.',tip:'예산 소진 여부 꼭 확인 — 조기 마감 사례 있음'},
+  {id:'s07',org:'한전 콜센터 (건조기 환급 문의)',num:'1551-1212',day:'오늘 (6/10)',script:'안녕하세요, 기초생활수급자인데요. 고효율 가전제품 구매비용 지원사업 관련해서 문의드리려고요. 건조기 구매 예정인데 지금 신청 가능한지, 예산이 아직 남아있는지 확인하고 싶어요. 그리고 제가 이전에 이 혜택 받은 적이 있는지도 조회해주실 수 있을까요?',tip:'예산 소진 여부 + 과거 수혜 이력 꼭 확인 (한도 누적 차감됨) · 1등급 제품 확인 필수'},
   {id:'s08',org:'법률구조공단',num:'132',day:'월요일 (6/15)',script:'안녕하세요, 기초생활수급자인데 개인파산 신청 무료 법률 지원 상담 받고 싶어요. 광주 지역으로 연결해 주세요.',tip:'상담 일정 잡히면 스케줄 탭 메모칸에 날짜 적어두기'},
 ];
 
 const TAG_CLASS={bank:'tag-bank',phone:'tag-phone',visit:'tag-visit',online:'tag-online',write:'tag-write',important:'tag-important'};
-const KEY='heunchi_v5';
+const KEY='heunchi_v6';
 function loadState(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return{}}}
 function saveState(s){try{localStorage.setItem(KEY,JSON.stringify(s))}catch{}}
 let state=loadState();
 let doneOpen=false;
 
 function renderSchedule(){
-  const container=document.getElementById('days-container');
-  container.innerHTML='';
+  const c=document.getElementById('days-container');c.innerHTML='';
   let td=0,ta=0;
   DAYS.forEach(day=>{
     const isOpen=state['open_'+day.id]!==false;
@@ -330,7 +325,7 @@ function renderSchedule(){
     td+=done;ta+=day.tasks.length;
     const card=document.createElement('div');card.className='day-card';
     card.innerHTML=`<div class="day-header" onclick="toggleDay('${day.id}')"><div><div style="display:flex;align-items:center;gap:8px"><span class="day-badge ${day.badge}">${day.label}</span><span class="day-title">${day.date}</span></div><div class="day-subtitle">${day.subtitle}</div></div><div style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;color:var(--text2)">${done}/${day.tasks.length}</span><i class="ti ti-chevron-down toggle-icon${isOpen?' open':''}" aria-hidden="true"></i></div></div><div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div><div class="day-body" style="display:${isOpen?'block':'none'}"><div class="task-list">${day.tasks.map(t=>{const checked=!!state['chk_'+t.id];const subLines=t.sub?t.sub.split('\n').map(l=>`<div>${l}</div>`).join(''):'';return`<div class="task-item"><input type="checkbox" class="task-check" id="${t.id}" ${checked?'checked':''} onchange="toggleCheck('${t.id}')"><div style="flex:1"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px"><span class="task-tag ${TAG_CLASS[t.tag]}">${t.tagLabel}</span><label for="${t.id}" class="task-text${checked?' done':''}">${t.text}</label></div>${t.sub?`<div class="task-sub">${subLines}</div>`:''}</div></div>`;}).join('')}</div><div class="memo-section"><div class="memo-label"><i class="ti ti-notes" style="font-size:14px;vertical-align:-2px;margin-right:4px"></i>메모</div><textarea class="memo-box" placeholder="팩스번호, 담당자명, 특이사항..." oninput="saveMemo('${day.id}',this.value)">${state['memo_'+day.id]||''}</textarea></div></div>`;
-    container.appendChild(card);
+    c.appendChild(card);
   });
   document.getElementById('done-count').textContent=td;
   document.getElementById('total-count').textContent=ta;
@@ -345,8 +340,7 @@ function renderDocs(){
   const allItems=DOC_GROUPS.flatMap(g=>g.items.map(i=>({...i,groupTitle:g.title})));
   const pending=allItems.filter(i=>!state['doc_'+i.id]);
   const done=allItems.filter(i=>!!state['doc_'+i.id]);
-  const pendingEl=document.getElementById('docs-pending');
-  pendingEl.innerHTML='';
+  const pendingEl=document.getElementById('docs-pending');pendingEl.innerHTML='';
   const grouped={};
   pending.forEach(i=>{if(!grouped[i.groupTitle])grouped[i.groupTitle]=[];grouped[i.groupTitle].push(i);});
   Object.entries(grouped).forEach(([title,items])=>{
@@ -362,9 +356,7 @@ function renderDocs(){
     doneEl.innerHTML=done.map(i=>makeDocHtml(i,true)).join('');
     doneEl.style.display=doneOpen?'block':'none';
     document.getElementById('done-chevron').style.transform=doneOpen?'rotate(180deg)':'';
-  } else {
-    doneWrap.style.display='none';
-  }
+  } else {doneWrap.style.display='none';}
   document.getElementById('doc-done').textContent=done.length;
   document.getElementById('doc-total').textContent=allItems.length;
   document.getElementById('doc-remain').textContent=allItems.length-done.length;
@@ -403,7 +395,7 @@ function calc(){
   document.getElementById('v-shinhan').textContent=shinhan?'-'+fmt(shinhanAmt):'—';
   const afterShinhan=afterSite-shinhanAmt;
   const welfare=document.getElementById('tog-welfare').checked;
-  const welfareAmt=welfare?Math.round(afterShinhan*0.3):0;
+  const welfareAmt=welfare?Math.min(Math.round(afterShinhan*0.3),300000):0;
   document.getElementById('v-welfare').textContent=welfare?'-'+fmt(welfareAmt):'—';
   const naver=document.getElementById('tog-naver').checked;
   const naverAmt=naver?20000:0;
