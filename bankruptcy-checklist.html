@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>파산 준비 종합 정리</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Apple SD Gothic Neo', '맑은 고딕', sans-serif; background: #f0f2f5; font-size: 13px; }
+h1 { text-align: center; font-size: 16px; padding: 14px; background: #3b5bdb; color: white; }
+
+.tab-wrap { display: flex; overflow-x: auto; background: #fff; border-bottom: 2px solid #dee2e6; white-space: nowrap; }
+.tab-btn { padding: 10px 14px; cursor: pointer; font-size: 12px; font-weight: bold; color: #666; border-bottom: 3px solid transparent; flex-shrink: 0; }
+.tab-btn.active { color: #3b5bdb; border-bottom-color: #3b5bdb; }
+
+.tab-content { display: none; padding: 12px; }
+.tab-content.active { display: block; }
+
+.fax-box { background: #e7f5ff; border: 1px solid #74c0fc; border-radius: 8px; padding: 12px; text-align: center; font-size: 18px; font-weight: bold; color: #1864ab; margin-bottom: 8px; }
+
+table { width: 100%; border-collapse: collapse; }
+th { background: #f1f3f5; padding: 8px; text-align: left; font-size: 12px; border-bottom: 1px solid #dee2e6; }
+td { padding: 8px; border-bottom: 1px solid #f8f9fa; vertical-align: top; font-size: 12px; }
+
+.item-row { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f1f3f5; }
+.item-row:last-child { border-bottom: none; }
+.item-row input[type=checkbox] { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; cursor: pointer; accent-color: #3b5bdb; }
+.item-row label { cursor: pointer; line-height: 1.5; }
+.item-row.checked label { text-decoration: line-through; color: #aaa; }
+
+.completed-box { margin-top: 12px; background: #f8f9fa; border-radius: 8px; padding: 10px; }
+.completed-title { font-size: 12px; color: #999; margin-bottom: 6px; }
+.completed-item { font-size: 12px; color: #aaa; text-decoration: line-through; padding: 3px 0; }
+
+.q-item { display: flex; gap: 8px; padding: 8px 0; border-bottom: 1px solid #f1f3f5; align-items: flex-start; }
+.q-item:last-child { border-bottom: none; }
+.q-num { background: #3b5bdb; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+.q-item input[type=checkbox] { width: 16px; height: 16px; flex-shrink: 0; margin-top: 2px; accent-color: #3b5bdb; cursor: pointer; }
+.q-item.checked .q-text { text-decoration: line-through; color: #aaa; }
+
+.section-title { font-weight: bold; font-size: 13px; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid #dee2e6; }
+</style>
+</head>
+<body>
+
+<h1>📋 파산 준비 종합 정리</h1>
+
+<div class="tab-wrap">
+  <div class="tab-btn active" onclick="showTab('fax')">📠 팩스</div>
+  <div class="tab-btn" onclick="showTab('done')">✅ 완료</div>
+  <div class="tab-btn" onclick="showTab('internet')">💻 인터넷</div>
+  <div class="tab-btn" onclick="showTab('weekday')">📞 평일연락</div>
+  <div class="tab-btn" onclick="showTab('bukgu')">🏢 북구청</div>
+  <div class="tab-btn" onclick="showTab('questions')">❓ 파산센터</div>
+  <div class="tab-btn" onclick="showTab('recheck')">🔍 재확인</div>
+  <div class="tab-btn" onclick="showTab('na')">🚫 해당없음</div>
+</div>
+
+<!-- 팩스 -->
+<div id="tab-fax" class="tab-content active">
+  <div class="fax-box">0504-332-1945</div>
+  <p style="text-align:center;color:#666;font-size:12px;">모든 팩스 요청 시 이 번호 사용</p>
+  <br>
+  <p style="font-size:12px;color:#444;line-height:1.8;">
+    📌 파산센터: 062-716-0703<br>
+    📌 담당: 윤은영 과장<br>
+    📌 파산센터 팩스: 0505-057-6765<br>
+    📌 법률구조공단: 132 (예약 후 방문)
+  </p>
+</div>
+
+<!-- 완료 -->
+<div id="tab-done" class="tab-content">
+  <div class="section-title">✅ 완료된 서류</div>
+  <div id="done-list">
+    <div class="item-row" id="d1"><input type="checkbox" checked onchange="moveItem(this,'d1','done-completed')"><label>1번 — 가족관계증명서(상세)·혼인관계증명서(상세) 본인</label></div>
+    <div class="item-row" id="d2"><input type="checkbox" checked onchange="moveItem(this,'d2','done-completed')"><label>2번 — 주민등록등본·초본 본인</label></div>
+    <div class="item-row" id="d3"><input type="checkbox" checked onchange="moveItem(this,'d3','done-completed')"><label>3번 — 출입국사실증명원 본인</label></div>
+    <div class="item-row" id="d4"><input type="checkbox" checked onchange="moveItem(this,'d4','done-completed')"><label>4번 — 수급자증명서 본인</label></div>
+    <div class="item-row" id="d5"><input type="checkbox" checked onchange="moveItem(this,'d5','done-completed')"><label>5번 — 지방세세목별과세증명서 본인</label></div>
+    <div class="item-row" id="d5a"><input type="checkbox" checked onchange="moveItem(this,'d5a','done-completed')"><label>5-A — 위택스 지방세납부내역서</label></div>
+    <div class="item-row" id="d7"><input type="checkbox" checked onchange="moveItem(this,'d7','done-completed')"><label>7번 — 지적전산자료조회결과 본인</label></div>
+    <div class="item-row" id="d12"><input type="checkbox" checked onchange="moveItem(this,'d12','done-completed')"><label>12번 — 국민연금 가입자가입증명·연금산정용가입내역 본인</label></div>
+    <div class="item-row" id="d13"><input type="checkbox" checked onchange="moveItem(this,'d13','done-completed')"><label>13번 — 건강보험자격득실확인서·미납내역서 본인</label></div>
+    <div class="item-row" id="d14"><input type="checkbox" checked onchange="moveItem(this,'d14','done-completed')"><label>14번 — 보험가입조회서 본인</label></div>
+    <div class="item-row" id="d19"><input type="checkbox" checked onchange="moveItem(this,'d19','done-completed')"><label>19번 — 통장거래내역서 국민·광주·신한 / payinfo 계좌내역</label></div>
+    <div class="item-row" id="d24"><input type="checkbox" checked onchange="moveItem(this,'d24','done-completed')"><label>24번 — 신복위 채무조정내역</label></div>
+  </div>
+</div>
+
+<!-- 인터넷 가능 -->
+<div id="tab-internet" class="tab-content">
+  <div class="section-title">💻 미완료 — 인터넷·본인 작성 가능</div>
+  <div id="internet-list">
+    <div class="item-row" id="i1"><input type="checkbox" onchange="moveItem(this,'i1','internet-completed')"><label><b>2번</b> — 주민등록초본 부모(엄마·아빠) → 부모님께 부탁 (정부24 or 주민센터)</label></div>
+    <div class="item-row" id="i2"><input type="checkbox" onchange="moveItem(this,'i2','internet-completed')"><label><b>5번</b> — 지방세세목별과세증명서 부모 최근 5년 → 부모님께 부탁 or 주민센터</label></div>
+    <div class="item-row" id="i3"><input type="checkbox" onchange="moveItem(this,'i3','internet-completed')"><label><b>9번</b> — 거주지 부동산등기부등본 본인 → 북구청 무인발급기 (무료)</label></div>
+    <div class="item-row" id="i4"><input type="checkbox" onchange="moveItem(this,'i4','internet-completed')"><label><b>14번</b> — 보험계약현황표 작성 중 (해약환급금 확인 후 완성)</label></div>
+    <div class="item-row" id="i5"><input type="checkbox" onchange="moveItem(this,'i5','internet-completed')"><label><b>17번</b> — 채무증대및지급불능경위서 본인 작성 A4 3~4페이지 (진단서 등 첨부)</label></div>
+    <div class="item-row" id="i6"><input type="checkbox" onchange="moveItem(this,'i6','internet-completed')"><label><b>20번</b> — 사업용 통장거래내역서 5년 → 해당 은행 방문</label></div>
+    <div class="item-row" id="i7"><input type="checkbox" onchange="moveItem(this,'i7','internet-completed')"><label><b>21번</b> — LH 임대차계약서 사본 → 본인 보유 확인</label></div>
+    <div class="item-row" id="i8"><input type="checkbox" onchange="moveItem(this,'i8','internet-completed')"><label><b>23번</b> — 사업장 임대차계약서·금융자료 → 본인 보유 확인</label></div>
+  </div>
+  <div class="completed-box" id="internet-completed" style="display:none">
+    <div class="completed-title">✅ 완료된 항목</div>
+  </div>
+</div>
+
+<!-- 평일 연락 -->
+<div id="tab-weekday" class="tab-content">
+  <div class="section-title">📞 미완료 — 평일 기관 전화·방문</div>
+  <div id="weekday-list">
+    <div class="item-row" id="w1"><input type="checkbox" onchange="moveItem(this,'w1','weekday-completed')"><label><b>4번</b> 북구청 복지과 방문 — 사회보장급여결정통지서</label></div>
+    <div class="item-row" id="w2"><input type="checkbox" onchange="moveItem(this,'w2','weekday-completed')"><label><b>7번</b> 북구청 지적과 방문 — 부모 지적전산자료 대리발급 확인</label></div>
+    <div class="item-row" id="w3"><input type="checkbox" onchange="moveItem(this,'w3','weekday-completed')"><label><b>12번</b> 국민연금공단 1355 — 납부확인서 "내용없음" 확인</label></div>
+    <div class="item-row" id="w4"><input type="checkbox" onchange="moveItem(this,'w4','weekday-completed')"><label><b>13번</b> 건강보험공단 북부지사 062-520-0700 방문 — 납부확인서 10년</label></div>
+    <div class="item-row" id="w5"><input type="checkbox" onchange="moveItem(this,'w5','weekday-completed')"><label><b>15번</b> 동양생명 1577-1004 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w6"><input type="checkbox" onchange="moveItem(this,'w6','weekday-completed')"><label><b>15번</b> 우체국보험 1588-1900 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w7"><input type="checkbox" onchange="moveItem(this,'w7','weekday-completed')"><label><b>15번</b> DB손해보험 1588-0100 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w8"><input type="checkbox" onchange="moveItem(this,'w8','weekday-completed')"><label><b>15번</b> KDB생명 1588-4040 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w9"><input type="checkbox" onchange="moveItem(this,'w9','weekday-completed')"><label><b>15번</b> 미래에셋생명 1588-0220 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w10"><input type="checkbox" onchange="moveItem(this,'w10','weekday-completed')"><label><b>15번</b> 농협손해보험 1644-9000 — 해지환급금내역서 팩스</label></div>
+    <div class="item-row" id="w11"><input type="checkbox" onchange="moveItem(this,'w11','weekday-completed')"><label><b>16·18번</b> KB국민카드 1588-1688 — 부채증명서 + 사용내역서 3년 팩스</label></div>
+    <div class="item-row" id="w12"><input type="checkbox" onchange="moveItem(this,'w12','weekday-completed')"><label><b>16·18번</b> 신한카드 1544-7000 — 부채증명서 + 사용내역서 3년 팩스</label></div>
+    <div class="item-row" id="w13"><input type="checkbox" onchange="moveItem(this,'w13','weekday-completed')"><label><b>16·18번</b> 삼성카드 1588-8700 — 부채증명서 + 사용내역서 3년 팩스</label></div>
+    <div class="item-row" id="w14"><input type="checkbox" onchange="moveItem(this,'w14','weekday-completed')"><label><b>16·18번</b> 롯데카드 1588-8100 — 부채증명서 + 사용내역서 3년 팩스</label></div>
+    <div class="item-row" id="w15"><input type="checkbox" onchange="moveItem(this,'w15','weekday-completed')"><label><b>16번</b> LG전자(미래신용정보) — 연락 대기 중</label></div>
+    <div class="item-row" id="w16"><input type="checkbox" onchange="moveItem(this,'w16','weekday-completed')"><label><b>19번</b> 나머지 은행 방문 — 통장거래내역서 5년</label></div>
+    <div class="item-row" id="w17"><input type="checkbox" onchange="moveItem(this,'w17','weekday-completed')"><label><b>25번</b> 채권압류 문서 확인 — 날아온 압류 문서 있으면 제출</label></div>
+  </div>
+  <div class="completed-box" id="weekday-completed" style="display:none">
+    <div class="completed-title">✅ 완료된 항목</div>
+  </div>
+</div>
+
+<!-- 북구청 -->
+<div id="tab-bukgu" class="tab-content">
+  <div class="section-title">🏢 내일 북구청 방문 목록 (6/15 월요일)</div>
+  <div id="bukgu-list">
+    <div class="item-row" id="b1"><input type="checkbox" onchange="moveItem(this,'b1','bukgu-completed')"><label><b>1순서</b> 북구청 복지과 — 사회보장급여결정통지서 발급</label></div>
+    <div class="item-row" id="b2"><input type="checkbox" onchange="moveItem(this,'b2','bukgu-completed')"><label><b>2순서</b> 북구청 지적과 — 부모 지적전산자료조회결과 대리발급 가능 여부 확인 및 발급</label></div>
+    <div class="item-row" id="b3"><input type="checkbox" onchange="moveItem(this,'b3','bukgu-completed')"><label><b>3순서</b> 북구청 무인발급기 — 거주지 부동산등기부등본 (9번) 무료</label></div>
+    <div class="item-row" id="b4"><input type="checkbox" onchange="moveItem(this,'b4','bukgu-completed')"><label><b>4순서</b> 건강보험공단 북부지사 062-520-0700 — 건강보험료 납부확인서 10년</label></div>
+  </div>
+  <div class="completed-box" id="bukgu-completed" style="display:none">
+    <div class="completed-title">✅ 완료된 항목</div>
+  </div>
+</div>
+
+<!-- 파산센터 질문 -->
+<div id="tab-questions" class="tab-content">
+  <div class="section-title">❓ 파산센터 질문 목록 📞 062-716-0703</div>
+  <div id="q-list">
+    <div class="q-item" id="q1"><input type="checkbox" onchange="moveQ(this,'q1')"><div class="q-num">1</div><div class="q-text">휴면계좌 (2년 이전 거래) 거래내역서 제출해야 하나?</div></div>
+    <div class="q-item" id="q2"><input type="checkbox" onchange="moveQ(this,'q2')"><div class="q-num">2</div><div class="q-text">카카오뱅크 세이프박스 거래내역서 따로 뽑아야 하나?</div></div>
+    <div class="q-item" id="q3"><input type="checkbox" onchange="moveQ(this,'q3')"><div class="q-num">3</div><div class="q-text">광주문화신협 미지급배당금 272원 2014년 계좌 서류 제출해야 하나?</div></div>
+    <div class="q-item" id="q4"><input type="checkbox" onchange="moveQ(this,'q4')"><div class="q-num">4</div><div class="q-text">앱·PDF로 뽑은 거래내역서 인정되나? (토스·카카오뱅크·케이뱅크 등)</div></div>
+    <div class="q-item" id="q5"><input type="checkbox" onchange="moveQ(this,'q5')"><div class="q-num">5</div><div class="q-text">현대카드 포인트 현금화 해도 되나?</div></div>
+    <div class="q-item" id="q6"><input type="checkbox" onchange="moveQ(this,'q6')"><div class="q-num">6</div><div class="q-text">동양생명 보험료 미납인데 payinfo에 정상으로 뜨는데 어떻게 처리하나?</div></div>
+    <div class="q-item" id="q7"><input type="checkbox" onchange="moveQ(this,'q7')"><div class="q-num">7</div><div class="q-text">새출발기금(캠코) 채무 상세내역서도 제출해야 하나?</div></div>
+    <div class="q-item" id="q8"><input type="checkbox" onchange="moveQ(this,'q8')"><div class="q-num">8</div><div class="q-text">추심회사(중앙신용정보·미래신용정보) 독촉장으로 원래 채권자 서류 대체 가능한가?</div></div>
+    <div class="q-item" id="q9"><input type="checkbox" onchange="moveQ(this,'q9')"><div class="q-num">9</div><div class="q-text">신복위 밖 채무 누락 채권자 처리 방법은?</div></div>
+    <div class="q-item" id="q10"><input type="checkbox" onchange="moveQ(this,'q10')"><div class="q-num">10</div><div class="q-text">파산 신청 중 통장 해지·개설 가능한가?</div></div>
+    <div class="q-item" id="q11"><input type="checkbox" onchange="moveQ(this,'q11')"><div class="q-num">11</div><div class="q-text">건조기 같은 고가 가전제품 구입해도 되나? 금액 기준이 얼마인가?</div></div>
+    <div class="q-item" id="q12"><input type="checkbox" onchange="moveQ(this,'q12')"><div class="q-num">12</div><div class="q-text">위택스 피부양자라서 지방세 납부내역서 출력 안 되는데 어떻게 하나?</div></div>
+    <div class="q-item" id="q13"><input type="checkbox" onchange="moveQ(this,'q13')"><div class="q-num">13</div><div class="q-text">건강보험료 납부확인서 특정 기간 유효한 자격사항 아니라고 나오는데 어떻게 처리하나?</div></div>
+  </div>
+  <div class="completed-box" id="q-completed" style="display:none">
+    <div class="completed-title">✅ 질문 완료</div>
+  </div>
+</div>
+
+<!-- 재확인 -->
+<div id="tab-recheck" class="tab-content">
+  <div class="section-title">🔍 다시 확인 필요</div>
+  <div id="recheck-list">
+    <div class="item-row" id="r1"><input type="checkbox" onchange="moveItem(this,'r1','recheck-completed')"><label><b>10·11번</b> 세무서 서류 — 받은 것 이름 다시 확인 필요</label></div>
+    <div class="item-row" id="r2"><input type="checkbox" onchange="moveItem(this,'r2','recheck-completed')"><label><b>25번</b> 소송 관련 서류 — 채권압류·추심명령 날아온 문서 있는지 확인</label></div>
+  </div>
+  <div class="completed-box" id="recheck-completed" style="display:none">
+    <div class="completed-title">✅ 완료된 항목</div>
+  </div>
+</div>
+
+<!-- 해당없음 -->
+<div id="tab-na" class="tab-content">
+  <div class="section-title">🚫 해당 없음</div>
+  <table>
+    <tr><th>번호</th><th>서류</th><th>이유</th></tr>
+    <tr><td>6번</td><td>차량등록원부·시가증명자료</td><td>차량 없음</td></tr>
+    <tr><td>8번</td><td>과거 10년 부동산등기부등본</td><td>소유한 적 없음</td></tr>
+    <tr><td>22번</td><td>부동산 처분 서류</td><td>부동산 없음</td></tr>
+    <tr><td>26번</td><td>경매 처분 서류</td><td>해당 없음</td></tr>
+    <tr><td>27번</td><td>과거 파산·개인회생 서류</td><td>해당 없음</td></tr>
+  </table>
+  <br>
+  <p style="font-size:12px;color:#555;">✅ <b>막도장</b> 준비 (인감도장 안됨, 잃어버려도 되는 것으로)</p>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function moveItem(cb, id, completedId) {
+  const row = document.getElementById(id);
+  const box = document.getElementById(completedId);
+  const label = row.querySelector('label').textContent;
+  if (cb.checked) {
+    row.style.display = 'none';
+    box.style.display = 'block';
+    const div = document.createElement('div');
+    div.className = 'completed-item';
+    div.textContent = '✓ ' + label;
+    div.id = 'done-' + id;
+    box.appendChild(div);
+  } else {
+    row.style.display = 'flex';
+    const done = document.getElementById('done-' + id);
+    if (done) done.remove();
+    const items = box.querySelectorAll('.completed-item');
+    if (items.length === 0) box.style.display = 'none';
+  }
+}
+
+function moveQ(cb, id) {
+  const row = document.getElementById(id);
+  const box = document.getElementById('q-completed');
+  const text = row.querySelector('.q-text').textContent;
+  if (cb.checked) {
+    row.style.display = 'none';
+    box.style.display = 'block';
+    const div = document.createElement('div');
+    div.className = 'completed-item';
+    div.textContent = '✓ ' + text;
+    div.id = 'done-' + id;
+    box.appendChild(div);
+  } else {
+    row.style.display = 'flex';
+    const done = document.getElementById('done-' + id);
+    if (done) done.remove();
+    const items = box.querySelectorAll('.completed-item');
+    if (items.length === 0) box.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>
