@@ -8,18 +8,24 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
   <meta name="apple-mobile-web-app-title" content="하루기록"/>
   <title>하루기록</title>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
-  <style>* { box-sizing: border-box; margin: 0; padding: 0; } body { background: #e8e8e8; }</style>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Noto Sans KR',sans-serif;background:#e8e8e8;-webkit-font-smoothing:antialiased;}
+    input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+    textarea,input,button{font-family:inherit;}
+    ::-webkit-scrollbar{width:0;}
+  </style>
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel">
-const { useState, useCallback, useMemo, useEffect, useRef } = React;
+const { useState, useCallback, useMemo, useEffect } = React;
 
 const THEMES = [
   { headerBg:"#5b6af7",contentBg:"#f3f4ff",cardBg:"#ffffff",cardBorder:"#dde0fb",cardShadow:"0 2px 14px rgba(91,106,247,0.10)",inputBg:"#f0f1fd",accent:"#5b6af7",accentLight:"#e8eaff",accentTxt:"#ffffff",tabActiveBg:"#ffffff",tabActiveTxt:"#5b6af7",tabInactive:"rgba(255,255,255,0.60)",titleColor:"#ffffff",dateColor:"rgba(255,255,255,0.75)",labelColor:"#5b6af7",rowBorder:"#eceeff",saveTxt:"#c7f9cc",histBorder:"rgba(255,255,255,0.40)",histTxt:"#ffffff",mealStripes:["#5b6af7","#f97316","#a855f7"],statBars:["#5b6af7","#f97316","#facc15","#34d399","#a855f7","#fb7185","#06b6d4","#f43f5e","#84cc16","#f59e0b","#10b981","#6366f1","#ec4899"] },
@@ -27,89 +33,67 @@ const THEMES = [
   { headerBg:"#f0735a",contentBg:"#fff7f5",cardBg:"#ffffff",cardBorder:"#fcd5cc",cardShadow:"0 2px 14px rgba(240,115,90,0.10)",inputBg:"#fff2ee",accent:"#f0735a",accentLight:"#fde8e3",accentTxt:"#ffffff",tabActiveBg:"#ffffff",tabActiveTxt:"#f0735a",tabInactive:"rgba(255,255,255,0.60)",titleColor:"#ffffff",dateColor:"rgba(255,255,255,0.75)",labelColor:"#f0735a",rowBorder:"#fde8e3",saveTxt:"#d0f9ea",histBorder:"rgba(255,255,255,0.40)",histTxt:"#ffffff",mealStripes:["#f0735a","#facc15","#3d9e7b"],statBars:["#f0735a","#facc15","#3d9e7b","#5b6af7","#a855f7","#fb7185","#06b6d4","#34d399","#84cc16","#f59e0b","#10b981","#6366f1","#ec4899"] },
 ];
 
-const STAT_THEME  = THEMES[0];
-const MAIN_TABS   = ["💰 가계부","🧭 루틴","🍎 식단","📊 통계"];
+const MAIN_TABS   = ["💰 가계부","🎯 목표","🧭 루틴","🍎 식단","📊 통계"];
 const DETAIL_TABS = ["💰 가계부","🧭 루틴","🍎 식단"];
 const DAYS        = ["일","월","화","수","목","금","토"];
 const ROUTINE_KEYS  = ["오전","라인관리","산책","소비통제","밤"];
 const ROUTINE_EMOJI = ["☀️","📏","🚶","💳","🌙"];
-
 const SPEND_CATS = ["고정비","변동고정비","생활","식비","쇼핑","선물","자기개발","반려동물","위생/뷰티","건강","여행/문화생활","교통비","기타"];
 const CAT_EMOJI  = ["🏠","📌","🛒","🍽️","🛍️","🎁","📚","🐾","🧴","💊","✈️","🚌","💡"];
-
 const SPEND_TAGS = ["계획소비","충동소비","필요소비","선결제","환급예정"];
-const TAG_COLOR  = { "계획소비":"#3d9e7b","충동소비":"#f0735a","필요소비":"#5b6af7","선결제":"#a855f7","환급예정":"#f59e0b" };
+const TAG_COLOR  = {"계획소비":"#3d9e7b","충동소비":"#f0735a","필요소비":"#5b6af7","선결제":"#a855f7","환급예정":"#f59e0b"};
 
 const p2 = n => String(n).padStart(2,"0");
-const getLocalDateStr = (d = new Date()) => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
-const isoToLabel = iso => { const d = new Date(iso+"T00:00:00"); return `${iso} (${DAYS[d.getDay()]}요일)`; };
-
-const getWeekDates = iso => {
-  const d = new Date(iso+"T00:00:00"), dow = d.getDay();
-  const mon = new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1));
-  return Array.from({length:7},(_,i)=>{ const dd=new Date(mon); dd.setDate(mon.getDate()+i); return getLocalDateStr(dd); });
-};
+const getLocalDateStr = (d=new Date()) => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;
+const isoToLabel = iso => { const d=new Date(iso+"T00:00:00"); return `${iso} (${DAYS[d.getDay()]}요일)`; };
+const getWeekDates = iso => { const d=new Date(iso+"T00:00:00"),dow=d.getDay(); const mon=new Date(d); mon.setDate(d.getDate()-(dow===0?6:dow-1)); return Array.from({length:7},(_,i)=>{ const dd=new Date(mon); dd.setDate(mon.getDate()+i); return getLocalDateStr(dd); }); };
 const getPrevWeekDates = iso => { const d=new Date(iso+"T00:00:00"); d.setDate(d.getDate()-7); return getWeekDates(getLocalDateStr(d)); };
 const getMonthDates = iso => { const d=new Date(iso+"T00:00:00"),y=d.getFullYear(),m=d.getMonth(),days=new Date(y,m+1,0).getDate(); return Array.from({length:days},(_,i)=>`${y}-${p2(m+1)}-${p2(i+1)}`); };
+const fmtNum = v => { const n=parseInt(String(v).replace(/,/g,"")); return isNaN(n)||n===0?"":n.toLocaleString(); };
+const parseNum = v => parseInt(String(v).replace(/,/g,""))||0;
 
-const defLedger = () => ({
-  고정수입:"", 기타소득:"",
-  고정비:"", 변동고정비:"", 생활:"", 식비:"", 쇼핑:"", 선물:"", 자기개발:"", 반려동물:"", "위생/뷰티":"", 건강:"", "여행/문화생활":"", 교통비:"", 기타:"",
-  저축투자:"", note:"",
-  txns: []
+const defLedger = () => ({ txns:[], note:"" });
+const defRoutine = () => ({오전:false,오전상세:"",라인관리:false,라인관리상세:"",산책:false,산책상세:"",소비통제:false,소비통제상세:"",디지털:"해당없음",밤:false,밤상세:"",note:""});
+const defDiet    = () => ({아침메뉴:"",아침포만감:"",점심메뉴:"",점심포만감:"",간식:"",저녁메뉴:"",저녁포만감:"",산책:false,note:"",몸무게:""});
+const defGoal    = () => ({
+  yearGoal:"", monthGoal:"", weekGoal:"", dayGoal:"",
+  savingTarget:"", savingNote:"",
+  buyList:[], spendLimit:"", spendNote:""
 });
-const defRoutine = () => ({ 오전:false,오전상세:"",라인관리:false,라인관리상세:"",산책:false,산책상세:"",소비통제:false,소비통제상세:"",디지털:"해당없음",밤:false,밤상세:"",note:"" });
-const defDiet    = () => ({ 아침메뉴:"",아침포만감:"",점심메뉴:"",점심포만감:"",간식:"",저녁메뉴:"",저녁포만감:"",산책:false,note:"",몸무게:"" });
 
 const lsGet = (key,iso,fn) => { try{ const r=localStorage.getItem(`dt_${key}_${iso}`); return r?JSON.parse(r):fn(); }catch{return fn();} };
 const lsSave = (key,iso,v) => { try{ localStorage.setItem(`dt_${key}_${iso}`,JSON.stringify(v)); }catch{} };
+const lsGetRaw = (key,fn) => { try{ const r=localStorage.getItem(key); return r?JSON.parse(r):fn(); }catch{return fn();} };
+const lsSaveRaw = (key,v) => { try{ localStorage.setItem(key,JSON.stringify(v)); }catch{} };
 
-function useStorage(key, iso, fn) {
-  const [data, setData] = useState(() => lsGet(key,iso,fn));
-  useEffect(() => { setData(lsGet(key,iso,fn)); }, [iso]);
-  const save = useCallback(v => {
-    setData(v);
-    const s = JSON.stringify(v);
-    try{ localStorage.setItem(`dt_${key}_${iso}`,s); }catch{}
-    setTimeout(()=>{ try{ localStorage.setItem(`dt_${key}_${iso}`,s); }catch{} },50);
-  },[key,iso]);
+function useStorage(key,iso,fn) {
+  const [data,setData]=useState(()=>lsGet(key,iso,fn));
+  useEffect(()=>{setData(lsGet(key,iso,fn));},[iso]);
+  const save=useCallback(v=>{setData(v);const s=JSON.stringify(v);try{localStorage.setItem(`dt_${key}_${iso}`,s);}catch{} setTimeout(()=>{try{localStorage.setItem(`dt_${key}_${iso}`,s);}catch{}},50);},[key,iso]);
   return [data,save];
 }
 
 function getHistoryDates(todayIso) {
-  const today = todayIso || getLocalDateStr();
-  return [...new Set(
-    Object.keys(localStorage).filter(k=>k.startsWith("dt_"))
-      .map(k=>{ const p=k.split("_"); return p[2]; }).filter(Boolean)
-  )].filter(d => d <= today).sort().reverse().slice(0,180);
+  const today=todayIso||getLocalDateStr();
+  return [...new Set(Object.keys(localStorage).filter(k=>k.startsWith("dt_")).map(k=>{const p=k.split("_");return p[2];}).filter(Boolean))].filter(d=>d<=today).sort().reverse().slice(0,180);
 }
 
 const S = {
-  h1:   {fontSize:22,fontWeight:800,letterSpacing:"-0.5px"},
-  h2:   {fontSize:17,fontWeight:700},
-  h3:   {fontSize:15,fontWeight:600},
-  body: {fontSize:14,fontWeight:400},
+  h1:{fontSize:22,fontWeight:800,letterSpacing:"-0.5px"},
+  h2:{fontSize:17,fontWeight:700},
+  h3:{fontSize:15,fontWeight:600},
+  body:{fontSize:14,fontWeight:400},
   small:{fontSize:12,fontWeight:500},
-  tiny: {fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.7px"},
+  tiny:{fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.7px"},
 };
 
-const CSS=`
-  
-  
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#e8e8e8;-webkit-font-smoothing:antialiased;}
-  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
-  textarea,input,button{font-family:inherit;}
-  ::-webkit-scrollbar{width:0;}
-`;
-
-const Card = ({t,children,style={}}) => (
+const Card=({t,children,style={}})=>(
   <div style={{background:t.cardBg,borderRadius:20,padding:18,border:`1.5px solid ${t.cardBorder}`,boxShadow:t.cardShadow,...style}}>{children}</div>
 );
-const SectionLabel = ({t,children,noMargin}) => (
+const SectionLabel=({t,children,noMargin})=>(
   <p style={{...S.tiny,color:t.labelColor,marginBottom:noMargin?0:14}}>{children}</p>
 );
-const CheckBtn = ({t,checked,onClick,disabled}) => (
+const CheckBtn=({t,checked,onClick,disabled})=>(
   <button onClick={onClick} disabled={disabled}
     style={{width:34,height:34,borderRadius:"50%",border:`2.5px solid ${checked?t.accent:"#ddd"}`,background:checked?t.accent:"#fff",cursor:disabled?"default":"pointer",fontSize:16,color:checked?t.accentTxt:"#ccc",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.18s",fontWeight:800}}>
     {checked?"✓":"○"}
@@ -122,14 +106,14 @@ function CopyBtn({t,text,label="📋 텍스트 복사"}) {
     {done?"✓ 복사됐어요!":label}
   </button>;
 }
-const BarRow = ({label,value,max,color,right}) => {
+const BarRow=({label,value,max,color,right})=>{
   const pct=max>0?Math.min((value/max)*100,100):0;
   return <div style={{marginBottom:12}}>
     <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}><span style={{...S.body,color:"#444"}}>{label}</span><span style={{...S.small,fontWeight:700,color}}>{right}</span></div>
     <div style={{height:8,background:"#f0f0f0",borderRadius:99,overflow:"hidden"}}><div style={{height:"100%",width:`${pct}%`,background:color,borderRadius:99,transition:"width 0.5s ease"}}/></div>
   </div>;
 };
-const MiniBar = ({value,max,color,label,sub,isToday}) => {
+const MiniBar=({value,max,color,label,sub,isToday})=>{
   const pct=max>0?Math.min((value/max)*100,100):0;
   return <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:5}}>
     <div style={{width:"100%",height:72,background:"#f5f5f5",borderRadius:10,display:"flex",alignItems:"flex-end",overflow:"hidden",border:isToday?`2px solid ${color}`:"2px solid transparent"}}>
@@ -140,21 +124,26 @@ const MiniBar = ({value,max,color,label,sub,isToday}) => {
   </div>;
 };
 
-function TxnModal({t, iso, onClose, onSave, editTxn}) {
-  const blank = {type:"지출",amount:"",cat:SPEND_CATS[0],content:"",memo:"",tag:"",date:iso};
-  const [form,setForm]=useState(editTxn||blank);
+// ── 건별 거래 모달 ──
+function TxnModal({t,iso,onClose,onSave,editTxn}) {
+  const blank={type:"지출",amount:"",cat:SPEND_CATS[0],content:"",memo:"",tag:"",date:iso};
+  const [form,setForm]=useState(editTxn?{...editTxn,amount:editTxn.amount?editTxn.amount.toLocaleString():""}:blank);
   const set=(k,v)=>setForm(f=>({...f,[k]:v}));
 
-  const handleSave=()=>{
-    if(!form.amount||parseInt(form.amount)<=0){alert("금액을 입력하세요");return;}
-    onSave({...form,id:editTxn?.id||Date.now(),amount:parseInt(form.amount)||0});
-    onClose();
+  const handleAmountChange=(v)=>{
+    const raw=v.replace(/,/g,"");
+    if(raw===""||/^\d+$/.test(raw)){
+      const num=parseInt(raw)||0;
+      set("amount",num>0?num.toLocaleString():"");
+    }
   };
 
-  const inp=(k,ph,type="text",extra={})=>(
-    <input type={type} placeholder={ph} value={form[k]} onChange={e=>set(k,e.target.value)}
-      style={{width:"100%",border:"none",borderRadius:10,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",fontFamily:"inherit",color:"#222",...extra}}/>
-  );
+  const handleSave=()=>{
+    const amt=parseNum(form.amount);
+    if(!amt||amt<=0){alert("금액을 입력하세요");return;}
+    onSave({...form,id:editTxn?.id||Date.now(),amount:amt});
+    onClose();
+  };
 
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",display:"flex",alignItems:"flex-end",zIndex:200}}>
@@ -177,7 +166,9 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>금액</p>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
-            {inp("amount","0","number",{fontSize:20,fontWeight:800,color:t.accent,textAlign:"right"})}
+            <input type="text" inputMode="numeric" placeholder="0" value={form.amount}
+              onChange={e=>handleAmountChange(e.target.value)}
+              style={{flex:1,border:"none",borderRadius:10,padding:"10px 12px",fontSize:22,fontWeight:800,color:t.accent,textAlign:"right",background:t.inputBg,outline:"none",fontFamily:"inherit"}}/>
             <span style={{...S.h3,color:"#aaa",flexShrink:0}}>원</span>
           </div>
         </div>
@@ -196,8 +187,7 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>소비 성격 태그</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
             {SPEND_TAGS.map(tag=>{
-              const col=TAG_COLOR[tag];
-              const sel=form.tag===tag;
+              const col=TAG_COLOR[tag],sel=form.tag===tag;
               return <button key={tag} onClick={()=>set("tag",sel?"":tag)}
                 style={{padding:"6px 12px",borderRadius:20,border:`1.5px solid ${sel?col:"#e0e0e0"}`,background:sel?col+"22":"#fff",color:sel?col:"#888",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s"}}>
                 {tag}
@@ -207,11 +197,13 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
         </div>
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>내용</p>
-          {inp("content","어디서 무엇을?")}
+          <input type="text" placeholder="어디서 무엇을?" value={form.content} onChange={e=>set("content",e.target.value)}
+            style={{width:"100%",border:"none",borderRadius:10,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",fontFamily:"inherit",color:"#222"}}/>
         </div>
         <div style={{marginBottom:20}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>메모</p>
-          {inp("memo","추가 메모")}
+          <input type="text" placeholder="추가 메모" value={form.memo} onChange={e=>set("memo",e.target.value)}
+            style={{width:"100%",border:"none",borderRadius:10,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",fontFamily:"inherit",color:"#222"}}/>
         </div>
         <button onClick={handleSave}
           style={{width:"100%",background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"15px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`}}>
@@ -222,62 +214,30 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
   );
 }
 
-function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
-  const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
-  const [ledgerMode, setLedgerMode] = useState("summary");
-  const [showTxnModal, setShowTxnModal] = useState(false);
-  const [editTxn, setEditTxn] = useState(null);
-  const [focusedKey, setFocusedKey] = useState(null);
+// ── 가계부 탭 (건별거래 전용) ──
+function LedgerTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
+  const [showModal,setShowModal]=useState(false);
+  const [editTxn,setEditTxn]=useState(null);
+  const txns=data.txns||[];
 
-  const txns = data.txns || [];
+  const totalOut=txns.filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0);
+  const totalIn=txns.filter(tx=>tx.type==="수입").reduce((s,tx)=>s+tx.amount,0);
+  const balance=totalIn-totalOut;
 
-  const txnSpendBycat = useMemo(()=>{
-    const m={};
-    txns.filter(tx=>tx.type==="지출").forEach(tx=>{ m[tx.cat]=(m[tx.cat]||0)+tx.amount; });
-    return m;
-  },[txns]);
-  const txnIncome = useMemo(()=>txns.filter(tx=>tx.type==="수입").reduce((s,tx)=>s+tx.amount,0),[txns]);
+  const addTxn=(txn)=>onChange({...data,txns:[...txns,txn]});
+  const updateTxn=(txn)=>onChange({...data,txns:txns.map(tx=>tx.id===txn.id?txn:tx)});
+  const deleteTxn=(id)=>{if(!window.confirm("삭제할까요?"))return;onChange({...data,txns:txns.filter(tx=>tx.id!==id)});};
 
-  const spendTotal = SPEND_CATS.reduce((s,k)=>s+(parseInt(data[k])||0)+( txnSpendBycat[k]||0),0);
-  const fixedIncome = parseInt(data.고정수입)||0;
-  const otherIncome = parseInt(data.기타소득)||0;
-  const income = fixedIncome + otherIncome + txnIncome;
-  const balance = income - spendTotal;
-  const savings = parseInt(data.저축투자)||0;
+  const tagSums=useMemo(()=>{const m={};txns.filter(tx=>tx.tag&&tx.type==="지출").forEach(tx=>{m[tx.tag]=(m[tx.tag]||0)+tx.amount;});return m;},[txns]);
+  const catSums=useMemo(()=>{const m={};txns.filter(tx=>tx.type==="지출").forEach(tx=>{m[tx.cat]=(m[tx.cat]||0)+tx.amount;});return m;},[txns]);
 
-  const addTxn = (txn) => { onChange({...data, txns: [...txns, txn]}); };
-  const updateTxn = (txn) => { onChange({...data, txns: txns.map(tx=>tx.id===txn.id?txn:tx)}); };
-  const deleteTxn = (id) => { if(!window.confirm("삭제할까요?")) return; onChange({...data, txns: txns.filter(tx=>tx.id!==id)}); };
-
-  const numInput = (k, wide) => {
-    const raw = data[k]||"", num=parseInt(raw)||0, isFocused=focusedKey===k;
-    return <div style={{display:"flex",alignItems:"center",gap:4}}>
-      <input type={isFocused?"number":"text"} placeholder="0"
-        value={isFocused?raw:(num>0?num.toLocaleString():"")}
-        readOnly={readOnly}
-        onFocus={()=>setFocusedKey(k)} onBlur={()=>setFocusedKey(null)}
-        onChange={e=>set(k,e.target.value)}
-        style={{width:wide||110,textAlign:"right",border:"none",borderRadius:10,padding:"7px 10px",...S.body,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",fontFamily:"inherit",color:"#222"}}/>
-      <span style={{...S.small,color:"#aaa"}}>원</span>
-    </div>;
-  };
-
-  const copyText = [
+  const copyText=[
     `💰 가계부 [${iso||"오늘"}]`,``,
-    `💵 고정수입: ${fixedIncome.toLocaleString()}원`,
-    `💸 기타소득: ${otherIncome.toLocaleString()}원`,
-    txnIncome>0?`🔖 건별수입: ${txnIncome.toLocaleString()}원`:"",
-    `합계: ${income.toLocaleString()}원`,``,
-    ...SPEND_CATS.map((k,i)=>{
-      const sum=(parseInt(data[k])||0)+(txnSpendBycat[k]||0);
-      return sum>0?`${CAT_EMOJI[i]}${k}: ${sum.toLocaleString()}원`:"";
-    }).filter(Boolean),
-    `💎 저축/투자: ${savings.toLocaleString()}원`,``,
-    `총 지출: ${spendTotal.toLocaleString()}원`,
-    `잔액: ${balance.toLocaleString()}원 ${balance>=0?"👍":"⚠️"}`,
-    data.note?`\n💬 ${data.note}`:"",
-    txns.length>0?`\n── 건별 거래 ──`:"",
+    `💵 수입: ${totalIn.toLocaleString()}원`,
+    `💸 지출: ${totalOut.toLocaleString()}원`,
+    `💳 잔액: ${balance.toLocaleString()}원`,``,
     ...txns.map(tx=>`${tx.type==="지출"?"💸":"💵"} ${tx.amount.toLocaleString()}원 [${tx.cat}] ${tx.content||""}${tx.tag?` #${tx.tag}`:""}${tx.memo?` (${tx.memo})`:""}`),
+    data.note?`\n💬 ${data.note}`:"",
   ].filter(l=>l!==undefined&&l!=="").join("\n");
 
   return (
@@ -285,156 +245,213 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
       {readOnly===false&&onSaveHistory&&(
         <button onClick={onSaveHistory} style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"13px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`}}>💾 수정 저장</button>
       )}
-      <div style={{display:"flex",gap:6,background:"#f0f0f0",borderRadius:14,padding:4}}>
-        {[["summary","📊 하루 합산"],["txn","📋 건별 거래"]].map(([v,label])=>(
-          <button key={v} onClick={()=>setLedgerMode(v)}
-            style={{flex:1,padding:"9px 0",borderRadius:10,border:"none",background:ledgerMode===v?t.accent:"transparent",color:ledgerMode===v?"#fff":"#888",...S.small,cursor:"pointer",fontFamily:"inherit",fontWeight:700,transition:"all 0.18s"}}>
-            {label}
-          </button>
+
+      {/* 요약 */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
+        {[{label:"수입",value:totalIn,color:"#3d9e7b"},{label:"지출",value:totalOut,color:"#f0735a"},{label:"잔액",value:balance,color:balance>=0?"#3d9e7b":"#f0735a"}].map(({label,value,color})=>(
+          <div key={label} style={{background:t.cardBg,borderRadius:16,padding:"12px 8px",border:`1.5px solid ${t.cardBorder}`,textAlign:"center",boxShadow:t.cardShadow}}>
+            <div style={{...S.tiny,color:"#999",marginBottom:5}}>{label}</div>
+            <div style={{fontSize:14,fontWeight:800,color}}>{Math.abs(value).toLocaleString()}<span style={{fontSize:10}}>원</span></div>
+          </div>
         ))}
       </div>
 
-      {ledgerMode==="summary" && <>
+      {/* 추가 버튼 */}
+      {!readOnly&&(
+        <button onClick={()=>{setEditTxn(null);setShowModal(true);}}
+          style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"13px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
+          ➕ 거래 추가
+        </button>
+      )}
+
+      {/* 거래 목록 */}
+      {txns.length===0?(
         <Card t={t}>
-          <SectionLabel t={t}>💵 수입</SectionLabel>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${t.rowBorder}`}}>
-            <span style={{...S.body,color:"#444"}}>💼 고정수입</span>{numInput("고정수입",120)}
+          <div style={{textAlign:"center",padding:"30px 0",color:"#bbb"}}>
+            <div style={{fontSize:32,marginBottom:8}}>📋</div>
+            <div style={{...S.small}}>오늘 거래를 추가해보세요</div>
           </div>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:txnIncome>0?`1px solid ${t.rowBorder}`:"none"}}>
-            <span style={{...S.body,color:"#444"}}>✨ 기타소득</span>{numInput("기타소득",120)}
-          </div>
-          {txnIncome>0&&(
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0"}}>
-              <span style={{...S.body,color:"#888"}}>🔖 건별 수입 합계</span>
-              <span style={{...S.small,color:t.accent,fontWeight:700}}>{txnIncome.toLocaleString()}원</span>
-            </div>
-          )}
-          {income>0&&(
-            <div style={{marginTop:8,padding:"8px 12px",background:t.accentLight,borderRadius:10,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{...S.small,color:t.accent,fontWeight:700}}>수입 합계</span>
-              <span style={{...S.h3,color:t.accent,fontWeight:800}}>{income.toLocaleString()}원</span>
-            </div>
-          )}
         </Card>
-        <Card t={t}>
-          <SectionLabel t={t}>💸 지출 항목</SectionLabel>
-          {SPEND_CATS.map((k,i)=>{
-            const txnAmt = txnSpendBycat[k]||0;
-            return <div key={k} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:i<SPEND_CATS.length-1?`1px solid ${t.rowBorder}`:"none"}}>
-              <div>
-                <span style={{...S.body,color:"#444"}}>{CAT_EMOJI[i]} {k}</span>
-                {txnAmt>0&&<span style={{marginLeft:6,fontSize:10,color:t.accent,fontWeight:700}}>+건별 {txnAmt.toLocaleString()}원</span>}
+      ):(
+        <Card t={t} style={{padding:0,overflow:"hidden"}}>
+          {[...txns].reverse().map((tx,i)=>{
+            const col=tx.type==="지출"?"#f0735a":"#3d9e7b";
+            const catIdx=SPEND_CATS.indexOf(tx.cat);
+            const emoji=catIdx>=0?CAT_EMOJI[catIdx]:"💡";
+            return <div key={tx.id} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:i<txns.length-1?`1px solid ${t.rowBorder}`:"none"}}>
+              <div style={{width:36,height:36,borderRadius:12,background:t.accentLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{emoji}</div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
+                  <span style={{...S.small,fontWeight:700,color:"#222"}}>{tx.cat}</span>
+                  {tx.tag&&<span style={{fontSize:10,fontWeight:700,color:TAG_COLOR[tx.tag]||"#888",background:(TAG_COLOR[tx.tag]||"#888")+"18",borderRadius:8,padding:"1px 6px"}}>{tx.tag}</span>}
+                </div>
+                {tx.content&&<div style={{fontSize:12,color:"#666",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tx.content}</div>}
+                {tx.memo&&<div style={{fontSize:11,color:"#aaa"}}>{tx.memo}</div>}
               </div>
-              {numInput(k)}
+              <div style={{textAlign:"right",flexShrink:0}}>
+                <div style={{...S.small,fontWeight:800,color:col}}>{tx.type==="지출"?"-":"+"}{tx.amount.toLocaleString()}원</div>
+                {!readOnly&&<div style={{display:"flex",gap:4,marginTop:4,justifyContent:"flex-end"}}>
+                  <button onClick={()=>{setEditTxn(tx);setShowModal(true);}} style={{fontSize:11,color:t.accent,background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontFamily:"inherit"}}>수정</button>
+                  <button onClick={()=>deleteTxn(tx.id)} style={{fontSize:11,color:"#f0735a",background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontFamily:"inherit"}}>삭제</button>
+                </div>}
+              </div>
             </div>;
           })}
-          <div style={{marginTop:8,padding:"7px 10px",background:t.accentLight,borderRadius:10}}>
-            <span style={{...S.tiny,color:t.labelColor,fontSize:10}}>💡 기타 = 행정비용, 충동소비, 기타 지출</span>
-          </div>
         </Card>
+      )}
+
+      {/* 태그별 */}
+      {Object.keys(tagSums).length>0&&(
         <Card t={t}>
-          <SectionLabel t={t}>💎 저축 / 투자</SectionLabel>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <span style={{...S.body,color:"#444"}}>💰 저축/투자</span>{numInput("저축투자")}
-          </div>
-        </Card>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-          {[{label:"총 지출",value:spendTotal,color:t.accent},{label:"저축/투자",value:savings,color:"#3d9e7b"},{label:"오늘 수입",value:income,color:"#5b6af7"},{label:"잔액",value:balance,color:balance>=0?"#3d9e7b":"#f0735a"}].map(({label,value,color})=>(
-            <div key={label} style={{background:t.cardBg,borderRadius:16,padding:"14px",border:`1.5px solid ${t.cardBorder}`,textAlign:"center",boxShadow:t.cardShadow}}>
-              <div style={{...S.tiny,color:"#999",marginBottom:6}}>{label}</div>
-              <div style={{...S.h2,color,letterSpacing:"-0.5px"}}>{Math.abs(value).toLocaleString()}<span style={{fontSize:12,fontWeight:500}}>원</span></div>
-              {label==="잔액"&&<div style={{fontSize:10,color,marginTop:2}}>{balance>=0?"👍 여유":"⚠️ 초과"}</div>}
+          <SectionLabel t={t}>🏷️ 소비 성격별</SectionLabel>
+          {SPEND_TAGS.filter(tag=>tagSums[tag]).map(tag=>(
+            <div key={tag} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${t.rowBorder}`}}>
+              <span style={{fontSize:13,fontWeight:600,color:TAG_COLOR[tag]}}>{tag}</span>
+              <span style={{...S.small,fontWeight:700,color:TAG_COLOR[tag]}}>{tagSums[tag].toLocaleString()}원</span>
             </div>
           ))}
-        </div>
-        <Card t={t}>
-          <SectionLabel t={t}>✏️ 한 줄 느낌</SectionLabel>
-          <textarea placeholder="오늘 소비 느낌을 한 줄로" value={data.note} onChange={e=>set("note",e.target.value)} readOnly={readOnly}
-            style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",resize:"none",minHeight:64,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
         </Card>
-      </>}
+      )}
 
-      {ledgerMode==="txn" && <>
-        {!readOnly&&(
-          <button onClick={()=>{setEditTxn(null);setShowTxnModal(true);}}
-            style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"13px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
-            ➕ 거래 추가
-          </button>
-        )}
-        {txns.length>0&&(
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
-            {[
-              {label:"건별 지출",value:txns.filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0),color:"#f0735a"},
-              {label:"건별 수입",value:txnIncome,color:"#3d9e7b"},
-            ].map(({label,value,color})=>(
-              <div key={label} style={{background:t.cardBg,borderRadius:16,padding:"12px",border:`1.5px solid ${t.cardBorder}`,textAlign:"center"}}>
-                <div style={{...S.tiny,color:"#999",marginBottom:4}}>{label}</div>
-                <div style={{fontSize:16,fontWeight:800,color}}>{value.toLocaleString()}<span style={{fontSize:11}}>원</span></div>
-              </div>
-            ))}
-          </div>
-        )}
-        {txns.length===0?(
-          <Card t={t}>
-            <div style={{textAlign:"center",padding:"30px 0",color:"#bbb"}}>
-              <div style={{fontSize:32,marginBottom:8}}>📋</div>
-              <div style={{...S.small}}>건별 거래를 추가해보세요</div>
-            </div>
-          </Card>
-        ):(
-          <Card t={t} style={{padding:0,overflow:"hidden"}}>
-            {[...txns].reverse().map((tx,i)=>{
-              const col=tx.type==="지출"?"#f0735a":"#3d9e7b";
-              const catIdx=SPEND_CATS.indexOf(tx.cat);
-              const emoji=catIdx>=0?CAT_EMOJI[catIdx]:"💡";
-              return <div key={tx.id} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 16px",borderBottom:i<txns.length-1?`1px solid ${t.rowBorder}`:"none"}}>
-                <div style={{width:36,height:36,borderRadius:12,background:t.accentLight,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>{emoji}</div>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:2}}>
-                    <span style={{...S.small,fontWeight:700,color:"#222"}}>{tx.cat}</span>
-                    {tx.tag&&<span style={{fontSize:10,fontWeight:700,color:TAG_COLOR[tx.tag]||"#888",background:(TAG_COLOR[tx.tag]||"#888")+"18",borderRadius:8,padding:"1px 6px"}}>{tx.tag}</span>}
-                  </div>
-                  {tx.content&&<div style={{fontSize:12,color:"#666",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tx.content}</div>}
-                  {tx.memo&&<div style={{fontSize:11,color:"#aaa"}}>{tx.memo}</div>}
-                </div>
-                <div style={{textAlign:"right",flexShrink:0}}>
-                  <div style={{...S.small,fontWeight:800,color:col}}>{tx.type==="지출"?"-":"+"}{tx.amount.toLocaleString()}원</div>
-                  {!readOnly&&<div style={{display:"flex",gap:4,marginTop:4,justifyContent:"flex-end"}}>
-                    <button onClick={()=>{setEditTxn(tx);setShowTxnModal(true);}} style={{fontSize:11,color:t.accent,background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontFamily:"inherit"}}>수정</button>
-                    <button onClick={()=>deleteTxn(tx.id)} style={{fontSize:11,color:"#f0735a",background:"none",border:"none",cursor:"pointer",padding:"2px 4px",fontFamily:"inherit"}}>삭제</button>
-                  </div>}
-                </div>
-              </div>;
-            })}
-          </Card>
-        )}
-        {txns.length>0&&(()=>{
-          const tagSums={};
-          txns.filter(tx=>tx.tag&&tx.type==="지출").forEach(tx=>{tagSums[tx.tag]=(tagSums[tx.tag]||0)+tx.amount;});
-          if(!Object.keys(tagSums).length) return null;
-          return <Card t={t}>
-            <SectionLabel t={t}>🏷️ 소비 성격별 합계</SectionLabel>
-            {SPEND_TAGS.filter(tag=>tagSums[tag]).map(tag=>(
-              <div key={tag} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 0",borderBottom:`1px solid ${t.rowBorder}`}}>
-                <span style={{fontSize:13,fontWeight:600,color:TAG_COLOR[tag]}}>{tag}</span>
-                <span style={{...S.small,fontWeight:700,color:TAG_COLOR[tag]}}>{tagSums[tag].toLocaleString()}원</span>
-              </div>
-            ))}
-          </Card>;
-        })()}
-      </>}
+      {/* 한 줄 느낌 */}
+      <Card t={t}>
+        <SectionLabel t={t}>✏️ 한 줄 느낌</SectionLabel>
+        <textarea placeholder="오늘 소비 느낌을 한 줄로" value={data.note||""} onChange={e=>!readOnly&&onChange({...data,note:e.target.value})} readOnly={readOnly}
+          style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",resize:"none",minHeight:64,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
+      </Card>
 
       <CopyBtn t={t} text={copyText} label="📋 가계부 텍스트 복사"/>
       <div style={{height:8}}/>
-      {showTxnModal&&<TxnModal t={t} iso={iso} onClose={()=>setShowTxnModal(false)}
-        onSave={txn=>{ editTxn?updateTxn(txn):addTxn(txn); }}
-        editTxn={editTxn}/>}
+      {showModal&&<TxnModal t={t} iso={iso} onClose={()=>setShowModal(false)} onSave={txn=>{editTxn?updateTxn(txn):addTxn(txn);}} editTxn={editTxn}/>}
     </div>
   );
 }
 
+// ── 목표 탭 ──
+function GoalTab({t,iso}) {
+  const monthKey=iso.slice(0,7);
+  const yearKey=iso.slice(0,4);
+  const weekDates=getWeekDates(iso);
+  const weekKey=weekDates[0];
+
+  const [goal,setGoal]=useState(()=>lsGetRaw(`goal_month_${monthKey}`,defGoal));
+  const [yearGoal,setYearGoal]=useState(()=>lsGetRaw(`goal_year_${yearKey}`,()=>({text:""})));
+  const [weekGoal,setWeekGoal]=useState(()=>lsGetRaw(`goal_week_${weekKey}`,()=>({text:""})));
+  const [dayGoal,setDayGoal]=useState(()=>lsGet("daygoal",iso,()=>({text:""})));
+  const [newItem,setNewItem]=useState("");
+
+  const saveGoal=v=>{setGoal(v);lsSaveRaw(`goal_month_${monthKey}`,v);};
+  const saveYearGoal=v=>{setYearGoal(v);lsSaveRaw(`goal_year_${yearKey}`,v);};
+  const saveWeekGoal=v=>{setWeekGoal(v);lsSaveRaw(`goal_week_${weekKey}`,v);};
+  const saveDayGoal=v=>{setDayGoal(v);lsSave("daygoal",iso,v);};
+
+  const addBuyItem=()=>{
+    if(!newItem.trim())return;
+    saveGoal({...goal,buyList:[...(goal.buyList||[]),{id:Date.now(),text:newItem.trim(),done:false}]});
+    setNewItem("");
+  };
+  const toggleBuyItem=id=>saveGoal({...goal,buyList:(goal.buyList||[]).map(it=>it.id===id?{...it,done:!it.done}:it)});
+  const deleteBuyItem=id=>saveGoal({...goal,buyList:(goal.buyList||[]).filter(it=>it.id!==id)});
+
+  const ta=(val,onCh,ph)=>(
+    <textarea placeholder={ph} value={val} onChange={e=>onCh(e.target.value)}
+      style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",resize:"none",minHeight:68,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
+  );
+
+  return (
+    <div style={{padding:16,display:"flex",flexDirection:"column",gap:14,flex:1,background:t.contentBg}}>
+
+      {/* 연간 목표 */}
+      <Card t={t} style={{border:`2px solid ${t.accent}`}}>
+        <SectionLabel t={t}>🌟 {yearKey}년 목표</SectionLabel>
+        {ta(yearGoal.text,v=>saveYearGoal({text:v}),"올해 이루고 싶은 것들...")}
+      </Card>
+
+      {/* 월별 목표 */}
+      <Card t={t}>
+        <SectionLabel t={t}>📅 {monthKey} 월 목표</SectionLabel>
+        {ta(goal.monthGoal||"",v=>saveGoal({...goal,monthGoal:v}),"이번 달 목표를 적어요...")}
+      </Card>
+
+      {/* 주간 목표 */}
+      <Card t={t}>
+        <SectionLabel t={t}>📆 이번 주 목표 ({weekDates[0].slice(5)} ~ {weekDates[6].slice(5)})</SectionLabel>
+        {ta(weekGoal.text,v=>saveWeekGoal({text:v}),"이번 주 집중할 것들...")}
+      </Card>
+
+      {/* 오늘 목표 */}
+      <Card t={t}>
+        <SectionLabel t={t}>☀️ 오늘 목표 ({iso.slice(5)})</SectionLabel>
+        {ta(dayGoal.text,v=>saveDayGoal({text:v}),"오늘 꼭 해야 할 것들...")}
+      </Card>
+
+      {/* 절약 목표 */}
+      <Card t={t}>
+        <SectionLabel t={t}>💰 이번 달 절약 목표</SectionLabel>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+          <input type="text" inputMode="numeric" placeholder="0"
+            value={goal.savingTarget?parseNum(goal.savingTarget).toLocaleString():""}
+            onChange={e=>{const raw=e.target.value.replace(/,/g,"");if(/^\d*$/.test(raw))saveGoal({...goal,savingTarget:raw});}}
+            style={{flex:1,border:"none",borderRadius:10,padding:"10px 12px",fontSize:18,fontWeight:800,color:t.accent,textAlign:"right",background:t.inputBg,outline:"none",fontFamily:"inherit"}}/>
+          <span style={{...S.small,color:"#aaa"}}>원</span>
+        </div>
+        <textarea placeholder="절약 방법이나 다짐..." value={goal.savingNote||""} onChange={e=>saveGoal({...goal,savingNote:e.target.value})}
+          style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",resize:"none",minHeight:56,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
+      </Card>
+
+      {/* 살 것 목록 */}
+      <Card t={t}>
+        <SectionLabel t={t}>🛒 사야 할 것 목록</SectionLabel>
+        <div style={{display:"flex",gap:8,marginBottom:12}}>
+          <input type="text" placeholder="살 것 추가..." value={newItem} onChange={e=>setNewItem(e.target.value)}
+            onKeyDown={e=>e.key==="Enter"&&addBuyItem()}
+            style={{flex:1,border:"none",borderRadius:10,padding:"9px 12px",...S.body,background:t.inputBg,outline:"none",fontFamily:"inherit",color:"#333"}}/>
+          <button onClick={addBuyItem}
+            style={{background:t.accent,color:"#fff",border:"none",borderRadius:10,padding:"9px 16px",...S.small,cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>추가</button>
+        </div>
+        {(goal.buyList||[]).length===0?(
+          <div style={{textAlign:"center",padding:"16px 0",color:"#bbb",...S.small}}>아직 없어요</div>
+        ):(
+          <div style={{display:"flex",flexDirection:"column",gap:6}}>
+            {(goal.buyList||[]).map(it=>(
+              <div key={it.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:`1px solid ${t.rowBorder}`}}>
+                <button onClick={()=>toggleBuyItem(it.id)}
+                  style={{width:24,height:24,borderRadius:"50%",border:`2px solid ${it.done?t.accent:"#ddd"}`,background:it.done?t.accent:"#fff",cursor:"pointer",flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,color:"#fff",fontWeight:800}}>
+                  {it.done?"✓":""}
+                </button>
+                <span style={{flex:1,...S.body,color:it.done?"#bbb":"#333",textDecoration:it.done?"line-through":"none"}}>{it.text}</span>
+                <button onClick={()=>deleteBuyItem(it.id)} style={{fontSize:11,color:"#f0735a",background:"none",border:"none",cursor:"pointer",padding:"2px 6px",fontFamily:"inherit"}}>삭제</button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div style={{marginTop:10,...S.tiny,color:"#aaa",fontSize:10}}>
+          완료 {(goal.buyList||[]).filter(i=>i.done).length} / 전체 {(goal.buyList||[]).length}
+        </div>
+      </Card>
+
+      {/* 이번 달 소비 한도 */}
+      <Card t={t}>
+        <SectionLabel t={t}>🚦 이번 달 소비 한도</SectionLabel>
+        <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+          <input type="text" inputMode="numeric" placeholder="0"
+            value={goal.spendLimit?parseNum(goal.spendLimit).toLocaleString():""}
+            onChange={e=>{const raw=e.target.value.replace(/,/g,"");if(/^\d*$/.test(raw))saveGoal({...goal,spendLimit:raw});}}
+            style={{flex:1,border:"none",borderRadius:10,padding:"10px 12px",fontSize:18,fontWeight:800,color:"#f0735a",textAlign:"right",background:t.inputBg,outline:"none",fontFamily:"inherit"}}/>
+          <span style={{...S.small,color:"#aaa"}}>원</span>
+        </div>
+        <textarea placeholder="소비 계획이나 주의사항..." value={goal.spendNote||""} onChange={e=>saveGoal({...goal,spendNote:e.target.value})}
+          style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",resize:"none",minHeight:56,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
+      </Card>
+
+      <div style={{height:20}}/>
+    </div>
+  );
+}
+
+// ── 루틴 탭 ──
 function RoutineTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
-  const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
+  const set=(k,v)=>{if(!readOnly)onChange({...data,[k]:v});};
   const items=[
     {key:"오전",label:"오전 루틴",detailKey:"오전상세"},
     {key:"라인관리",label:"라인관리",detailKey:"라인관리상세"},
@@ -489,12 +506,13 @@ function RoutineTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   );
 }
 
+// ── 식단 탭 ──
 function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
-  const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
+  const set=(k,v)=>{if(!readOnly)onChange({...data,[k]:v});};
   const isMonday=useMemo(()=>new Date((iso||getLocalDateStr())+"T00:00:00").getDay()===1,[iso]);
   const weightHistory=useMemo(()=>{
     const results=[],ref=new Date((iso||getLocalDateStr())+"T00:00:00"),dow=ref.getDay();
-    const thisMonday=new Date(ref); thisMonday.setDate(ref.getDate()-(dow===0?6:dow-1));
+    const thisMonday=new Date(ref);thisMonday.setDate(ref.getDate()-(dow===0?6:dow-1));
     for(let i=7;i>=0;i--){const d=new Date(thisMonday);d.setDate(thisMonday.getDate()-i*7);const wIso=getLocalDateStr(d);const diet=lsGet("diet",wIso,defDiet);if(diet.몸무게&&parseFloat(diet.몸무게)>0)results.push({iso:wIso,w:parseFloat(diet.몸무게)});}
     return results;
   },[iso]);
@@ -544,7 +562,6 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
               style={{width:120,border:"none",borderRadius:10,padding:"10px 12px",fontSize:20,fontWeight:800,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",fontFamily:"inherit",color:t.accent,textAlign:"center"}}/>
             <span style={{fontSize:16,fontWeight:700,color:"#aaa"}}>kg</span>
           </div>
-          <div style={{...S.tiny,color:"#aaa",marginTop:8,textAlign:"center"}}>매주 월요일 오전 공복 측정 📏</div>
           {weightHistory.length>1&&(
             <div style={{marginTop:16}}>
               <div style={{...S.tiny,color:t.labelColor,marginBottom:10}}>📈 몸무게 변화 (최근 {weightHistory.length}주)</div>
@@ -558,7 +575,6 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
                   </div>;
                 })}
               </div>
-              {weightHistory.length>=2&&(()=>{const diff=(weightHistory[weightHistory.length-1].w-weightHistory[0].w).toFixed(1),sign=diff>0?"+":"";return <div style={{textAlign:"center",marginTop:10,...S.small,color:diff<0?"#3d9e7b":diff>0?"#f0735a":"#aaa"}}>{weightHistory.length}주간 {sign}{diff}kg {diff<0?"😊 감소!":diff>0?"📈 증가":"➡️ 유지"}</div>;})()}
             </div>
           )}
         </Card>
@@ -588,55 +604,34 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   );
 }
 
+// ── 통계 ──
 function StatsView({todayIso}) {
-  const t=STAT_THEME;
+  const t=THEMES[0];
   const [period,setPeriod]=useState("week");
   const monthKey=todayIso.slice(0,7);
   const [monthlyIncome,setMonthlyIncome]=useState(()=>{try{const s=localStorage.getItem(`dt_monthlyIncome_${monthKey}`);return s!==null?s:"885070";}catch{return "885070";}});
   const saveMonthlyIncome=v=>{setMonthlyIncome(v);try{localStorage.setItem(`dt_monthlyIncome_${monthKey}`,v);}catch{}};
-  const [focusedMI,setFocusedMI]=useState(false);
 
   const dates=useMemo(()=>period==="prevweek"?getPrevWeekDates(todayIso):period==="month"?getMonthDates(todayIso):getWeekDates(todayIso),[period,todayIso]);
   const allData=useMemo(()=>dates.map(iso=>({iso,ledger:lsGet("ledger",iso,defLedger),routine:lsGet("routine",iso,defRoutine)})),[dates]);
 
-  const spendPerDay=allData.map(({ledger})=>{
-    const base=SPEND_CATS.reduce((s,k)=>s+(parseInt(ledger[k])||0),0);
-    const txnSpend=(ledger.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0);
-    return base+txnSpend;
-  });
+  const spendPerDay=allData.map(({ledger})=>(ledger.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0));
   const maxSpend=Math.max(...spendPerDay,1);
   const weekTotal=spendPerDay.reduce((a,b)=>a+b,0);
-  const weekSavings=allData.reduce((s,{ledger})=>s+(parseInt(ledger.저축투자)||0),0);
-  const weekIncome=allData.reduce((s,{ledger})=>s+(parseInt(ledger.고정수입)||0)+(parseInt(ledger.기타소득)||0)+((ledger.txns||[]).filter(tx=>tx.type==="수입").reduce((ss,tx)=>ss+tx.amount,0)),0);
+  const weekSavings=0;
+  const zeroDays=spendPerDay.filter(v=>v===0).length;
 
-  const catTotals=SPEND_CATS.map((k,i)=>({k,emoji:CAT_EMOJI[i],v:allData.reduce((s,{ledger})=>{
-    const base=parseInt(ledger[k])||0;
-    const txnAmt=(ledger.txns||[]).filter(tx=>tx.type==="지출"&&tx.cat===k).reduce((ss,tx)=>ss+tx.amount,0);
-    return s+base+txnAmt;
-  },0)}));
+  const catTotals=SPEND_CATS.map((k,i)=>({k,emoji:CAT_EMOJI[i],v:allData.reduce((s,{ledger})=>(ledger.txns||[]).filter(tx=>tx.type==="지출"&&tx.cat===k).reduce((ss,tx)=>ss+tx.amount,0)+s,0)}));
   const maxCat=Math.max(...catTotals.map(c=>c.v),1);
   const miNum=parseInt(monthlyIncome)||0;
 
-  const zeroDays=spendPerDay.filter(v=>v===0).length;
-
-  const tagTotals=useMemo(()=>{
-    const m={};
-    allData.forEach(({ledger})=>{(ledger.txns||[]).filter(tx=>tx.type==="지출"&&tx.tag).forEach(tx=>{m[tx.tag]=(m[tx.tag]||0)+tx.amount;});});
-    return m;
-  },[allData]);
-
+  const tagTotals=useMemo(()=>{const m={};allData.forEach(({ledger})=>{(ledger.txns||[]).filter(tx=>tx.type==="지출"&&tx.tag).forEach(tx=>{m[tx.tag]=(m[tx.tag]||0)+tx.amount;});});return m;},[allData]);
   const routinePerDay=allData.map(({routine})=>({done:ROUTINE_KEYS.filter(k=>routine[k]).length,total:ROUTINE_KEYS.length}));
   const totalDone=routinePerDay.reduce((s,r)=>s+r.done,0),totalPossible=routinePerDay.reduce((s,r)=>s+r.total,0);
   const overallPct=totalPossible>0?Math.round((totalDone/totalPossible)*100):0;
   const streak=useMemo(()=>{const hist=getHistoryDates(todayIso);let c=0;for(const iso of hist){const r=lsGet("routine",iso,defRoutine);if(ROUTINE_KEYS.filter(k=>r[k]).length===ROUTINE_KEYS.length)c++;else break;}return c;},[todayIso]);
   const dayLabels=dates.map(iso=>{const d=new Date(iso+"T00:00:00");return DAYS[d.getDay()];});
   const periodLabel=period==="week"?"이번 주":period==="prevweek"?"지난 주":"이번 달";
-
-  const copyText=()=>{
-    const lines=[`📊 ${periodLabel} 통계`,`총 지출: ${weekTotal.toLocaleString()}원`,`무지출일: ${zeroDays}일`,`저축/투자: ${weekSavings.toLocaleString()}원`,...catTotals.filter(c=>c.v>0).map(c=>`  ${c.emoji}${c.k}: ${c.v.toLocaleString()}원`),Object.keys(tagTotals).length?`\n── 소비 성격별 ──`:"", ...SPEND_TAGS.filter(tag=>tagTotals[tag]).map(tag=>`  ${tag}: ${tagTotals[tag].toLocaleString()}원`)].join("\n");
-    navigator.clipboard.writeText(lines).catch(()=>{});
-    alert("복사됐어요!");
-  };
 
   return (
     <div style={{padding:16,display:"flex",flexDirection:"column",gap:14,background:t.contentBg}}>
@@ -648,7 +643,6 @@ function StatsView({todayIso}) {
           </button>
         ))}
       </div>
-      <div style={{textAlign:"center",...S.small,color:t.labelColor,fontWeight:700}}>{dates[0]} ~ {dates[dates.length-1]}</div>
       <Card t={t} style={{background:"linear-gradient(135deg,#5b6af7,#818cf8)",border:"none"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div><div style={{...S.tiny,color:"rgba(255,255,255,0.7)",marginBottom:4}}>🔥 완벽 달성 연속</div><div style={{...S.h1,color:"#fff"}}>{streak}일<span style={{...S.small,color:"rgba(255,255,255,0.7)",marginLeft:6}}>연속 퍼펙트!</span></div></div>
@@ -657,11 +651,10 @@ function StatsView({todayIso}) {
       </Card>
       <Card t={t}>
         <SectionLabel t={t}>💵 이번 달 고정수입</SectionLabel>
-        <div style={{...S.tiny,color:"#aaa",marginBottom:8}}>생계비 + 주거급여</div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <input type={focusedMI?"number":"text"} placeholder="885,070"
-            value={focusedMI?monthlyIncome:(miNum>0?miNum.toLocaleString():"")}
-            onFocus={()=>setFocusedMI(true)} onBlur={()=>setFocusedMI(false)} onChange={e=>saveMonthlyIncome(e.target.value)}
+          <input type="text" inputMode="numeric" placeholder="885,070"
+            value={miNum>0?miNum.toLocaleString():""}
+            onChange={e=>{const raw=e.target.value.replace(/,/g,"");if(/^\d*$/.test(raw))saveMonthlyIncome(raw);}}
             style={{flex:1,textAlign:"right",border:"none",borderRadius:10,padding:"10px 12px",...S.body,background:t.inputBg,outline:"none",fontFamily:"inherit",color:"#222",fontSize:16,fontWeight:700}}/>
           <span style={{...S.small,color:"#aaa"}}>원</span>
         </div>
@@ -676,8 +669,8 @@ function StatsView({todayIso}) {
       </Card>
       <Card t={t}>
         <SectionLabel t={t}>💰 {periodLabel} 소비 요약</SectionLabel>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
-          {[{label:"총 지출",value:weekTotal,color:"#f0735a"},{label:"무지출일",value:zeroDays,color:"#3d9e7b",unit:"일"},{label:"저축/투자",value:weekSavings,color:"#5b6af7"}].map(({label,value,color,unit})=>(
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
+          {[{label:"총 지출",value:weekTotal,color:"#f0735a"},{label:"무지출일",value:zeroDays,color:"#3d9e7b",unit:"일"}].map(({label,value,color,unit})=>(
             <div key={label} style={{background:t.inputBg,borderRadius:14,padding:"12px 8px",textAlign:"center"}}>
               <div style={{...S.tiny,color:"#aaa",marginBottom:5}}>{label}</div>
               <div style={{fontSize:15,fontWeight:800,color}}>{value.toLocaleString()}<span style={{fontSize:11}}>{unit||"원"}</span></div>
@@ -729,44 +722,23 @@ function StatsView({todayIso}) {
           </div>
           <div><div style={{...S.h3,color:"#333",marginBottom:4}}>{totalDone} / {totalPossible} 완료</div><div style={{...S.small,color:"#aaa"}}>{periodLabel} {dates.length}일 기준</div></div>
         </div>
-        <SectionLabel t={t} noMargin>일별 달성</SectionLabel>
         <div style={{display:"flex",gap:period==="month"?3:8,marginTop:12,alignItems:"flex-end",overflowX:"auto",paddingBottom:4}}>
           {routinePerDay.map(({done,total},i)=><MiniBar key={i} value={done} max={ROUTINE_KEYS.length} color={dates[i]===todayIso?t.accent:t.accentLight} label={dayLabels[i]} sub={`${done}/${total}`} isToday={dates[i]===todayIso}/>)}
         </div>
       </Card>
-      <Card t={t}>
-        <SectionLabel t={t}>✅ 항목별 달성</SectionLabel>
-        {ROUTINE_KEYS.map((key,i)=>{const cnt=allData.filter(({routine})=>routine[key]).length;return <BarRow key={key} label={`${ROUTINE_EMOJI[i]} ${key}`} value={cnt} max={dates.length} color={t.statBars[i%t.statBars.length]} right={`${cnt}/${dates.length}일`}/>;} )}
-      </Card>
-      {(()=>{
-        const wh=[...new Set(Object.keys(localStorage).filter(k=>k.startsWith("dt_diet_")).map(k=>k.replace("dt_diet_","")))].sort().reduce((acc,wIso)=>{const diet=lsGet("diet",wIso,defDiet);if(diet.몸무게&&parseFloat(diet.몸무게)>0)acc.push({iso:wIso,w:parseFloat(diet.몸무게)});return acc;},[]).slice(-12);
-        if(!wh.length)return null;
-        const wMn=Math.min(...wh.map(x=>x.w)),wMx=Math.max(...wh.map(x=>x.w)),wRange=wMx-wMn||0.1,lastW=wh[wh.length-1].w,firstW=wh[0].w,diff=wh.length>1?(lastW-firstW).toFixed(1):null;
-        return <Card t={t}>
-          <SectionLabel t={t}>⚖️ 몸무게 변화</SectionLabel>
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-            <div style={{background:t.accentLight,borderRadius:14,padding:"12px 16px",textAlign:"center"}}><div style={{...S.tiny,color:t.accent,marginBottom:4}}>최근 기록</div><div style={{fontSize:24,fontWeight:900,color:t.accent}}>{lastW}<span style={{fontSize:12,fontWeight:500}}>kg</span></div></div>
-            {diff!==null&&<div style={{background:parseFloat(diff)<0?"#f0faf6":"#fff5f5",borderRadius:14,padding:"12px 16px",textAlign:"center"}}><div style={{...S.tiny,color:"#aaa",marginBottom:4}}>{wh.length}회 기준</div><div style={{fontSize:18,fontWeight:900,color:parseFloat(diff)<0?"#3d9e7b":parseFloat(diff)>0?"#f0735a":"#aaa"}}>{parseFloat(diff)>0?"+":""}{diff}kg</div><div style={{fontSize:10,color:"#aaa",marginTop:2}}>{parseFloat(diff)<0?"😊 감소":parseFloat(diff)>0?"📈 증가":"➡️ 유지"}</div></div>}
-          </div>
-          <div style={{display:"flex",alignItems:"flex-end",gap:4,height:80}}>
-            {wh.map(({iso:wIso,w},i)=>{const pct=(w-wMn)/wRange,barH=14+pct*60,isLast=i===wh.length-1;return <div key={wIso} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:2}}><span style={{fontSize:8,fontWeight:800,color:isLast?t.accent:"#ccc"}}>{w}</span><div style={{width:"100%",height:barH,background:isLast?t.accent:t.accentLight,borderRadius:"4px 4px 0 0"}}/></div>;})}
-          </div>
-        </Card>;
-      })()}
-      <button onClick={copyText} style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"15px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}55`}}>📋 텍스트로 복사하기</button>
       <div style={{height:20}}/>
     </div>
   );
 }
 
-function HistoryDetail({iso, onBack, tab, setTab, todayIso}) {
+// ── 기록 상세 ──
+function HistoryDetail({iso,onBack,tab,setTab,todayIso}) {
   const t=THEMES[Math.min(tab,2)];
   const [ledger,setLedger]=useStorage("ledger",iso,defLedger);
   const [routine,setRoutine]=useStorage("routine",iso,defRoutine);
   const [diet,setDiet]=useStorage("diet",iso,defDiet);
   const [savedMsg,setSavedMsg]=useState(false);
-  const handleSave=(key,data)=>{ lsSave(key,iso,data); setSavedMsg(true); setTimeout(()=>setSavedMsg(false),1800); };
-
+  const handleSave=(key,data)=>{lsSave(key,iso,data);setSavedMsg(true);setTimeout(()=>setSavedMsg(false),1800);};
   return (
     <div style={{maxWidth:420,margin:"0 auto",minHeight:"100vh",display:"flex",flexDirection:"column",background:t.contentBg}}>
       <div style={{background:t.headerBg,padding:"16px 20px 0",position:"sticky",top:0,zIndex:10}}>
@@ -774,7 +746,6 @@ function HistoryDetail({iso, onBack, tab, setTab, todayIso}) {
           <button onClick={onBack} style={{background:"rgba(255,255,255,0.22)",border:"none",borderRadius:20,padding:"6px 14px",color:"#fff",...S.small,cursor:"pointer",fontFamily:"inherit",fontWeight:700}}>← 뒤로</button>
           <span style={{...S.small,color:t.titleColor,fontWeight:700,flex:1}}>{isoToLabel(iso)}</span>
           {savedMsg&&<span style={{...S.tiny,color:t.saveTxt,fontSize:10}}>✓ 저장됨</span>}
-          <span style={{background:"rgba(255,255,255,0.2)",borderRadius:12,padding:"3px 10px",...S.tiny,color:"rgba(255,255,255,0.9)",fontSize:10}}>✏️ 수정 가능</span>
         </div>
         <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.15)",marginTop:4}}>
           {DETAIL_TABS.map((name,i)=>(
@@ -785,22 +756,22 @@ function HistoryDetail({iso, onBack, tab, setTab, todayIso}) {
           ))}
         </div>
       </div>
-      {tab===0&&<LedgerTab  data={ledger}  onChange={setLedger}  t={t} readOnly={false} iso={iso} onSaveHistory={()=>handleSave("ledger",ledger)}/>}
+      {tab===0&&<LedgerTab data={ledger} onChange={setLedger} t={t} readOnly={false} iso={iso} onSaveHistory={()=>handleSave("ledger",ledger)}/>}
       {tab===1&&<RoutineTab data={routine} onChange={setRoutine} t={t} readOnly={false} iso={iso} onSaveHistory={()=>handleSave("routine",routine)}/>}
-      {tab===2&&<DietTab    data={diet}    onChange={setDiet}    t={t} readOnly={false} iso={iso} onSaveHistory={()=>handleSave("diet",diet)}/>}
+      {tab===2&&<DietTab data={diet} onChange={setDiet} t={t} readOnly={false} iso={iso} onSaveHistory={()=>handleSave("diet",diet)}/>}
     </div>
   );
 }
 
+// ── 달력 모달 ──
 function CalendarModal({onClose,onSelect,t,todayIso}) {
   const [viewYear,setViewYear]=useState(()=>parseInt(todayIso.slice(0,4)));
   const [viewMonth,setViewMonth]=useState(()=>parseInt(todayIso.slice(5,7)));
-  const prevMonth=()=>{ if(viewMonth===1){setViewYear(y=>y-1);setViewMonth(12);}else setViewMonth(m=>m-1); };
-  const nextMonth=()=>{ if(`${viewYear}-${p2(viewMonth)}`>=todayIso.slice(0,7))return; if(viewMonth===12){setViewYear(y=>y+1);setViewMonth(1);}else setViewMonth(m=>m+1); };
-  const daysInMonth=new Date(viewYear,viewMonth,0).getDate(), firstDow=new Date(viewYear,viewMonth-1,1).getDay();
-  const cells=[]; for(let i=0;i<firstDow;i++)cells.push(null); for(let d=1;d<=daysInMonth;d++)cells.push(d);
+  const prevMonth=()=>{if(viewMonth===1){setViewYear(y=>y-1);setViewMonth(12);}else setViewMonth(m=>m-1);};
+  const nextMonth=()=>{if(`${viewYear}-${p2(viewMonth)}`>=todayIso.slice(0,7))return;if(viewMonth===12){setViewYear(y=>y+1);setViewMonth(1);}else setViewMonth(m=>m+1);};
+  const daysInMonth=new Date(viewYear,viewMonth,0).getDate(),firstDow=new Date(viewYear,viewMonth-1,1).getDay();
+  const cells=[];for(let i=0;i<firstDow;i++)cells.push(null);for(let d=1;d<=daysInMonth;d++)cells.push(d);
   const monthStr=`${viewYear}-${p2(viewMonth)}`;
-
   const dayInfo=useMemo(()=>{
     const m={};
     for(let d=1;d<=daysInMonth;d++){
@@ -808,12 +779,11 @@ function CalendarModal({onClose,onSelect,t,todayIso}) {
       if(iso>todayIso)continue;
       const r=lsGet("routine",iso,defRoutine),l=lsGet("ledger",iso,defLedger);
       const done=ROUTINE_KEYS.filter(k=>r[k]).length;
-      const spend=SPEND_CATS.reduce((s,k)=>s+(parseInt(l[k])||0),0)+((l.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0));
+      const spend=(l.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0);
       m[d]={has:true,perfect:done===ROUTINE_KEYS.length,done,spend};
     }
     return m;
   },[monthStr,daysInMonth,todayIso]);
-
   const maxSpend=Math.max(...Object.values(dayInfo).map(v=>v.spend||0),1);
   const spendColor=spend=>{
     if(!spend)return null;
@@ -821,7 +791,6 @@ function CalendarModal({onClose,onSelect,t,todayIso}) {
     if(ratio<0.5){const r=Math.round(134+(251-134)*ratio*2),g=Math.round(239+(146-239)*ratio*2),b=Math.round(172+(60-172)*ratio*2);return `rgb(${r},${g},${b})`;}
     const r2=(ratio-0.5)*2,r=Math.round(251+(240-251)*r2),g=Math.round(146+(115-146)*r2),b=Math.round(60+(90-60)*r2);return `rgb(${r},${g},${b})`;
   };
-
   return (
     <div onClick={onClose} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.45)",display:"flex",alignItems:"flex-end",zIndex:100}}>
       <div onClick={e=>e.stopPropagation()} style={{background:"#fff",borderRadius:"24px 24px 0 0",width:"100%",maxHeight:"80vh",overflow:"hidden",display:"flex",flexDirection:"column",boxShadow:"0 -4px 30px rgba(0,0,0,0.18)"}}>
@@ -861,31 +830,29 @@ function CalendarModal({onClose,onSelect,t,todayIso}) {
   );
 }
 
+// ── App ──
 function App() {
-  const getLocalDate=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
+  const getLocalDate=()=>{const d=new Date();return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`;};
   const [iso,setIso]=useState(()=>getLocalDate());
-  useEffect(()=>{ const id=setInterval(()=>{ const today=getLocalDate(); setIso(prev=>prev!==today?today:prev); },60000); return ()=>clearInterval(id); },[]);
-
+  useEffect(()=>{const id=setInterval(()=>{const today=getLocalDate();setIso(prev=>prev!==today?today:prev);},60000);return()=>clearInterval(id);},[]);
   const [tab,setTab]=useState(0);
   const [historyTab,setHistoryTab]=useState(0);
   const [showHist,setShowHist]=useState(false);
   const [viewDate,setViewDate]=useState(null);
   const [saved,setSaved]=useState(false);
-
-  const themeIdx=tab===3?0:tab;
-  const t=THEMES[themeIdx];
+  const themeIdx=tab>=3?0:tab===1?0:tab===0?0:tab;
+  const tIdx=tab===0?0:tab===1?0:tab===2?1:tab===3?2:0;
+  const t=THEMES[tIdx];
   const d=new Date(iso+"T00:00:00");
   const label=`${d.getFullYear()}.${p2(d.getMonth()+1)}.${p2(d.getDate())} ${DAYS[d.getDay()]}요일`;
-
   const [ledger,setLedger]=useStorage("ledger",iso,defLedger);
   const [routine,setRoutine]=useStorage("routine",iso,defRoutine);
   const [diet,setDiet]=useStorage("diet",iso,defDiet);
-  const ws=s=>v=>{ s(v); setSaved(true); setTimeout(()=>setSaved(false),1400); };
+  const ws=s=>v=>{s(v);setSaved(true);setTimeout(()=>setSaved(false),1400);};
 
-  if(viewDate) return <><style>{CSS}</style><HistoryDetail iso={viewDate} onBack={()=>setViewDate(null)} tab={historyTab} setTab={setHistoryTab} todayIso={iso}/></>;
+  if(viewDate) return <HistoryDetail iso={viewDate} onBack={()=>setViewDate(null)} tab={historyTab} setTab={setHistoryTab} todayIso={iso}/>;
 
   return (
-    <><style>{CSS}</style>
     <div key={iso} style={{maxWidth:420,margin:"0 auto",minHeight:"100vh",display:"flex",flexDirection:"column",background:t.contentBg,transition:"background 0.3s"}}>
       <div style={{background:t.headerBg,padding:"20px 20px 0",position:"sticky",top:0,zIndex:10,transition:"background 0.3s"}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
@@ -898,21 +865,22 @@ function App() {
             <button onClick={()=>setShowHist(true)} style={{border:`1.5px solid ${t.histBorder}`,color:t.histTxt,padding:"6px 13px",borderRadius:20,...S.tiny,cursor:"pointer",background:"rgba(255,255,255,0.15)",fontFamily:"inherit"}}>📅 기록</button>
           </div>
         </div>
-        <div style={{display:"flex",gap:4,marginTop:14}}>
+        <div style={{display:"flex",gap:2,marginTop:14}}>
           {MAIN_TABS.map((name,i)=>(
             <button key={name} onClick={()=>setTab(i)}
-              style={{flex:1,padding:"9px 2px",border:"none",fontFamily:"inherit",fontSize:10,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",borderRadius:"12px 12px 0 0",transition:"all 0.22s",background:tab===i?t.tabActiveBg:"rgba(255,255,255,0.12)",color:tab===i?t.tabActiveTxt:t.tabInactive}}>
+              style={{flex:1,padding:"9px 2px",border:"none",fontFamily:"inherit",fontSize:9,fontWeight:700,cursor:"pointer",whiteSpace:"nowrap",borderRadius:"12px 12px 0 0",transition:"all 0.22s",background:tab===i?t.tabActiveBg:"rgba(255,255,255,0.12)",color:tab===i?t.tabActiveTxt:t.tabInactive}}>
               {name}
             </button>
           ))}
         </div>
       </div>
       {tab===0&&<LedgerTab  data={ledger}  onChange={ws(setLedger)}  t={t} iso={iso}/>}
-      {tab===1&&<RoutineTab data={routine} onChange={ws(setRoutine)} t={t} iso={iso}/>}
-      {tab===2&&<DietTab    data={diet}    onChange={ws(setDiet)}    t={t} iso={iso}/>}
-      {tab===3&&<StatsView  todayIso={iso}/>}
-      {showHist&&<CalendarModal t={t} todayIso={iso} onClose={()=>setShowHist(false)} onSelect={d=>{setViewDate(d);setHistoryTab(Math.min(tab,2));}}/>}
-    </div></>
+      {tab===1&&<GoalTab t={t} iso={iso}/>}
+      {tab===2&&<RoutineTab data={routine} onChange={ws(setRoutine)} t={t} iso={iso}/>}
+      {tab===3&&<DietTab    data={diet}    onChange={ws(setDiet)}    t={t} iso={iso}/>}
+      {tab===4&&<StatsView  todayIso={iso}/>}
+      {showHist&&<CalendarModal t={t} todayIso={iso} onClose={()=>setShowHist(false)} onSelect={d=>{setViewDate(d);setHistoryTab(Math.min(tab===0?0:tab===2?1:tab===3?2:0,2));}}/>}
+    </div>
   );
 }
 
