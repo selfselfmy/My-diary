@@ -34,7 +34,6 @@ const ROUTINE_EMOJI = ["☀️","📏","🚶","💳","🌙"];
 const SPEND_CATS = ["고정비","변동고정비","생활","식비","쇼핑","선물","자기개발","반려동물","위생/뷰티","건강","여행/문화생활","교통비","기타"];
 const CAT_EMOJI  = ["🏠","📌","🛒","🍽️","🛍️","🎁","📚","🐾","🧴","💊","✈️","🚌","💡"];
 
-// 소비성격 태그
 const SPEND_TAGS = ["계획소비","충동소비","필요소비","선결제","환급예정"];
 const TAG_COLOR  = { "계획소비":"#3d9e7b","충동소비":"#f0735a","필요소비":"#5b6af7","선결제":"#a855f7","환급예정":"#f59e0b" };
 
@@ -50,12 +49,10 @@ const getWeekDates = iso => {
 const getPrevWeekDates = iso => { const d=new Date(iso+"T00:00:00"); d.setDate(d.getDate()-7); return getWeekDates(getLocalDateStr(d)); };
 const getMonthDates = iso => { const d=new Date(iso+"T00:00:00"),y=d.getFullYear(),m=d.getMonth(),days=new Date(y,m+1,0).getDate(); return Array.from({length:days},(_,i)=>`${y}-${p2(m+1)}-${p2(i+1)}`); };
 
-// ── defaults ──
 const defLedger = () => ({
   고정수입:"", 기타소득:"",
   고정비:"", 변동고정비:"", 생활:"", 식비:"", 쇼핑:"", 선물:"", 자기개발:"", 반려동물:"", "위생/뷰티":"", 건강:"", "여행/문화생활":"", 교통비:"", 기타:"",
   저축투자:"", note:"",
-  // 건별 거래 목록
   txns: []
 });
 const defRoutine = () => ({ 오전:false,오전상세:"",라인관리:false,라인관리상세:"",산책:false,산책상세:"",소비통제:false,소비통제상세:"",디지털:"해당없음",밤:false,밤상세:"",note:"" });
@@ -76,7 +73,6 @@ function useStorage(key, iso, fn) {
   return [data,save];
 }
 
-// 날짜가 오늘 이하면 모두 접근 허용 (미래만 제외)
 function getHistoryDates(todayIso) {
   const today = todayIso || getLocalDateStr();
   return [...new Set(
@@ -93,6 +89,16 @@ const S = {
   small:{fontSize:12,fontWeight:500},
   tiny: {fontSize:11,fontWeight:600,textTransform:"uppercase",letterSpacing:"0.7px"},
 };
+
+const CSS=`
+  @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Pretendard:wght@400;500;600;700;800;900&display=swap');
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#e8e8e8;-webkit-font-smoothing:antialiased;}
+  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
+  textarea,input,button{font-family:inherit;}
+  ::-webkit-scrollbar{width:0;}
+`;
 
 const Card = ({t,children,style={}}) => (
   <div style={{background:t.cardBg,borderRadius:20,padding:18,border:`1.5px solid ${t.cardBorder}`,boxShadow:t.cardShadow,...style}}>{children}</div>
@@ -131,7 +137,6 @@ const MiniBar = ({value,max,color,label,sub,isToday}) => {
   </div>;
 };
 
-// ── 건별 거래 입력 모달 ──────────────────────────────────────────────────────
 function TxnModal({t, iso, onClose, onSave, editTxn}) {
   const blank = {type:"지출",amount:"",cat:SPEND_CATS[0],content:"",memo:"",tag:"",date:iso};
   const [form,setForm]=useState(editTxn||blank);
@@ -155,8 +160,6 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
           <span style={{...S.h2,color:"#222"}}>{editTxn?"✏️ 거래 수정":"➕ 거래 추가"}</span>
           <button onClick={onClose} style={{background:"#f5f5f5",border:"none",width:32,height:32,borderRadius:"50%",cursor:"pointer",fontSize:16,color:"#666",fontWeight:700}}>✕</button>
         </div>
-
-        {/* 수입/지출 */}
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>수입 / 지출</p>
           <div style={{display:"flex",gap:8}}>
@@ -168,8 +171,6 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
             ))}
           </div>
         </div>
-
-        {/* 금액 */}
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>금액</p>
           <div style={{display:"flex",alignItems:"center",gap:6}}>
@@ -177,8 +178,6 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
             <span style={{...S.h3,color:"#aaa",flexShrink:0}}>원</span>
           </div>
         </div>
-
-        {/* 카테고리 */}
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>카테고리</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -190,8 +189,6 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
             ))}
           </div>
         </div>
-
-        {/* 소비성격 태그 */}
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>소비 성격 태그</p>
           <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
@@ -205,19 +202,14 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
             })}
           </div>
         </div>
-
-        {/* 내용 */}
         <div style={{marginBottom:14}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>내용</p>
           {inp("content","어디서 무엇을?")}
         </div>
-
-        {/* 메모 */}
         <div style={{marginBottom:20}}>
           <p style={{...S.tiny,color:t.labelColor,marginBottom:8}}>메모</p>
           {inp("memo","추가 메모")}
         </div>
-
         <button onClick={handleSave}
           style={{width:"100%",background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"15px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`}}>
           💾 저장
@@ -227,17 +219,15 @@ function TxnModal({t, iso, onClose, onSave, editTxn}) {
   );
 }
 
-// ── Ledger Tab ────────────────────────────────────────────────────────────────
 function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
   const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
-  const [ledgerMode, setLedgerMode] = useState("summary"); // "summary" | "txn"
+  const [ledgerMode, setLedgerMode] = useState("summary");
   const [showTxnModal, setShowTxnModal] = useState(false);
   const [editTxn, setEditTxn] = useState(null);
   const [focusedKey, setFocusedKey] = useState(null);
 
   const txns = data.txns || [];
 
-  // 건별 거래에서 카테고리별 합산 → 하루합산 섹션에 반영
   const txnSpendBycat = useMemo(()=>{
     const m={};
     txns.filter(tx=>tx.type==="지출").forEach(tx=>{ m[tx.cat]=(m[tx.cat]||0)+tx.amount; });
@@ -252,18 +242,9 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
   const balance = income - spendTotal;
   const savings = parseInt(data.저축투자)||0;
 
-  const addTxn = (txn) => {
-    const updated = [...txns, txn];
-    onChange({...data, txns: updated});
-  };
-  const updateTxn = (txn) => {
-    const updated = txns.map(tx=>tx.id===txn.id?txn:tx);
-    onChange({...data, txns: updated});
-  };
-  const deleteTxn = (id) => {
-    if(!window.confirm("삭제할까요?")) return;
-    onChange({...data, txns: txns.filter(tx=>tx.id!==id)});
-  };
+  const addTxn = (txn) => { onChange({...data, txns: [...txns, txn]}); };
+  const updateTxn = (txn) => { onChange({...data, txns: txns.map(tx=>tx.id===txn.id?txn:tx)}); };
+  const deleteTxn = (id) => { if(!window.confirm("삭제할까요?")) return; onChange({...data, txns: txns.filter(tx=>tx.id!==id)}); };
 
   const numInput = (k, wide) => {
     const raw = data[k]||"", num=parseInt(raw)||0, isFocused=focusedKey===k;
@@ -298,13 +279,9 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
 
   return (
     <div style={{padding:16,display:"flex",flexDirection:"column",gap:14,flex:1,background:t.contentBg}}>
-
-      {/* 저장 버튼 (지난 기록 수정 시) */}
       {readOnly===false&&onSaveHistory&&(
         <button onClick={onSaveHistory} style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"13px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`}}>💾 수정 저장</button>
       )}
-
-      {/* 모드 전환 탭 */}
       <div style={{display:"flex",gap:6,background:"#f0f0f0",borderRadius:14,padding:4}}>
         {[["summary","📊 하루 합산"],["txn","📋 건별 거래"]].map(([v,label])=>(
           <button key={v} onClick={()=>setLedgerMode(v)}
@@ -315,7 +292,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
       </div>
 
       {ledgerMode==="summary" && <>
-        {/* 수입 */}
         <Card t={t}>
           <SectionLabel t={t}>💵 수입</SectionLabel>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 0",borderBottom:`1px solid ${t.rowBorder}`}}>
@@ -337,8 +313,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
             </div>
           )}
         </Card>
-
-        {/* 지출 */}
         <Card t={t}>
           <SectionLabel t={t}>💸 지출 항목</SectionLabel>
           {SPEND_CATS.map((k,i)=>{
@@ -355,16 +329,12 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
             <span style={{...S.tiny,color:t.labelColor,fontSize:10}}>💡 기타 = 행정비용, 충동소비, 기타 지출</span>
           </div>
         </Card>
-
-        {/* 저축 */}
         <Card t={t}>
           <SectionLabel t={t}>💎 저축 / 투자</SectionLabel>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
             <span style={{...S.body,color:"#444"}}>💰 저축/투자</span>{numInput("저축투자")}
           </div>
         </Card>
-
-        {/* 요약 4칸 */}
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
           {[{label:"총 지출",value:spendTotal,color:t.accent},{label:"저축/투자",value:savings,color:"#3d9e7b"},{label:"오늘 수입",value:income,color:"#5b6af7"},{label:"잔액",value:balance,color:balance>=0?"#3d9e7b":"#f0735a"}].map(({label,value,color})=>(
             <div key={label} style={{background:t.cardBg,borderRadius:16,padding:"14px",border:`1.5px solid ${t.cardBorder}`,textAlign:"center",boxShadow:t.cardShadow}}>
@@ -374,7 +344,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
             </div>
           ))}
         </div>
-
         <Card t={t}>
           <SectionLabel t={t}>✏️ 한 줄 느낌</SectionLabel>
           <textarea placeholder="오늘 소비 느낌을 한 줄로" value={data.note} onChange={e=>set("note",e.target.value)} readOnly={readOnly}
@@ -383,15 +352,12 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
       </>}
 
       {ledgerMode==="txn" && <>
-        {/* 건별 거래 추가 버튼 */}
         {!readOnly&&(
           <button onClick={()=>{setEditTxn(null);setShowTxnModal(true);}}
             style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"13px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}44`,display:"flex",alignItems:"center",justifyContent:"center",gap:6}}>
             ➕ 거래 추가
           </button>
         )}
-
-        {/* 거래 요약 */}
         {txns.length>0&&(
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
             {[
@@ -405,8 +371,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
             ))}
           </div>
         )}
-
-        {/* 거래 목록 */}
         {txns.length===0?(
           <Card t={t}>
             <div style={{textAlign:"center",padding:"30px 0",color:"#bbb"}}>
@@ -441,8 +405,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
             })}
           </Card>
         )}
-
-        {/* 태그별 소비 요약 */}
         {txns.length>0&&(()=>{
           const tagSums={};
           txns.filter(tx=>tx.tag&&tx.type==="지출").forEach(tx=>{tagSums[tx.tag]=(tagSums[tx.tag]||0)+tx.amount;});
@@ -461,7 +423,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
 
       <CopyBtn t={t} text={copyText} label="📋 가계부 텍스트 복사"/>
       <div style={{height:8}}/>
-
       {showTxnModal&&<TxnModal t={t} iso={iso} onClose={()=>setShowTxnModal(false)}
         onSave={txn=>{ editTxn?updateTxn(txn):addTxn(txn); }}
         editTxn={editTxn}/>}
@@ -469,7 +430,6 @@ function LedgerTab({data, onChange, t, readOnly, iso, onSaveHistory}) {
   );
 }
 
-// ── Routine Tab ───────────────────────────────────────────────────────────────
 function RoutineTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
   const items=[
@@ -526,7 +486,6 @@ function RoutineTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   );
 }
 
-// ── Diet Tab ──────────────────────────────────────────────────────────────────
 function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   const set=(k,v)=>{ if(!readOnly) onChange({...data,[k]:v}); };
   const isMonday=useMemo(()=>new Date((iso||getLocalDateStr())+"T00:00:00").getDay()===1,[iso]);
@@ -574,7 +533,6 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
           style={{width:"100%",border:"none",borderRadius:10,padding:"10px 12px",...S.body,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",fontFamily:"inherit",color:"#333"}}/>
       </Card>
       <Card t={t}><div style={{display:"flex",alignItems:"center",gap:12}}><CheckBtn t={t} checked={data.산책} onClick={()=>set("산책",!data.산책)} disabled={readOnly}/><span style={{...S.body,color:"#444",fontWeight:500}}>🚶 산책 완료</span></div></Card>
-
       {isMonday&&(
         <Card t={t} style={{border:`2px solid ${t.accent}`}}>
           <SectionLabel t={t}>⚖️ 월요일 공복 몸무게</SectionLabel>
@@ -617,7 +575,6 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
           </div>
         </Card>
       )}
-
       <Card t={t}><SectionLabel t={t}>✏️ 한 줄 느낌</SectionLabel>
         <textarea placeholder="오늘 식단 느낌을 한 줄로" value={data.note} onChange={e=>set("note",e.target.value)} readOnly={readOnly}
           style={{width:"100%",border:"none",borderRadius:12,padding:"10px 12px",...S.body,background:readOnly?"#f5f5f5":t.inputBg,outline:"none",resize:"none",minHeight:64,fontFamily:"inherit",color:"#333",lineHeight:1.7}}/>
@@ -628,7 +585,6 @@ function DietTab({data,onChange,t,readOnly,iso,onSaveHistory}) {
   );
 }
 
-// ── Stats View ────────────────────────────────────────────────────────────────
 function StatsView({todayIso}) {
   const t=STAT_THEME;
   const [period,setPeriod]=useState("week");
@@ -640,7 +596,6 @@ function StatsView({todayIso}) {
   const dates=useMemo(()=>period==="prevweek"?getPrevWeekDates(todayIso):period==="month"?getMonthDates(todayIso):getWeekDates(todayIso),[period,todayIso]);
   const allData=useMemo(()=>dates.map(iso=>({iso,ledger:lsGet("ledger",iso,defLedger),routine:lsGet("routine",iso,defRoutine)})),[dates]);
 
-  // 지출 합산 (하루합산 + 건별 거래 모두)
   const spendPerDay=allData.map(({ledger})=>{
     const base=SPEND_CATS.reduce((s,k)=>s+(parseInt(ledger[k])||0),0);
     const txnSpend=(ledger.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0);
@@ -659,10 +614,8 @@ function StatsView({todayIso}) {
   const maxCat=Math.max(...catTotals.map(c=>c.v),1);
   const miNum=parseInt(monthlyIncome)||0;
 
-  // 무지출일
   const zeroDays=spendPerDay.filter(v=>v===0).length;
 
-  // 소비 태그 합계
   const tagTotals=useMemo(()=>{
     const m={};
     allData.forEach(({ledger})=>{(ledger.txns||[]).filter(tx=>tx.type==="지출"&&tx.tag).forEach(tx=>{m[tx.tag]=(m[tx.tag]||0)+tx.amount;});});
@@ -693,16 +646,12 @@ function StatsView({todayIso}) {
         ))}
       </div>
       <div style={{textAlign:"center",...S.small,color:t.labelColor,fontWeight:700}}>{dates[0]} ~ {dates[dates.length-1]}</div>
-
-      {/* 스트릭 */}
       <Card t={t} style={{background:"linear-gradient(135deg,#5b6af7,#818cf8)",border:"none"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
           <div><div style={{...S.tiny,color:"rgba(255,255,255,0.7)",marginBottom:4}}>🔥 완벽 달성 연속</div><div style={{...S.h1,color:"#fff"}}>{streak}일<span style={{...S.small,color:"rgba(255,255,255,0.7)",marginLeft:6}}>연속 퍼펙트!</span></div></div>
           <div style={{fontSize:44}}>{streak>=7?"🏆":streak>=3?"🔥":"✨"}</div>
         </div>
       </Card>
-
-      {/* 월 수입 */}
       <Card t={t}>
         <SectionLabel t={t}>💵 이번 달 고정수입</SectionLabel>
         <div style={{...S.tiny,color:"#aaa",marginBottom:8}}>생계비 + 주거급여</div>
@@ -722,8 +671,6 @@ function StatsView({todayIso}) {
           ))}
         </div>}
       </Card>
-
-      {/* 소비 요약 */}
       <Card t={t}>
         <SectionLabel t={t}>💰 {periodLabel} 소비 요약</SectionLabel>
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:16}}>
@@ -739,8 +686,6 @@ function StatsView({todayIso}) {
           {spendPerDay.map((v,i)=><MiniBar key={i} value={v} max={maxSpend} color={dates[i]===todayIso?t.accent:"#c7d2fe"} label={dayLabels[i]} sub={v>0?(v>=10000?`${Math.round(v/1000)}k`:`${v}`):""}  isToday={dates[i]===todayIso}/>)}
         </div>
       </Card>
-
-      {/* 카테고리 */}
       <Card t={t}>
         <SectionLabel t={t}>📂 카테고리별 지출</SectionLabel>
         {weekTotal>0&&(()=>{
@@ -761,8 +706,6 @@ function StatsView({todayIso}) {
         })()}
         {catTotals.map(({k,emoji,v},i)=>v>0&&<BarRow key={k} label={`${emoji} ${k}`} value={v} max={maxCat} color={t.statBars[i%t.statBars.length]} right={`${v.toLocaleString()}원`}/>)}
       </Card>
-
-      {/* 소비 성격 태그 통계 */}
       {Object.keys(tagTotals).length>0&&(
         <Card t={t}>
           <SectionLabel t={t}>🏷️ 소비 성격별 통계</SectionLabel>
@@ -771,8 +714,6 @@ function StatsView({todayIso}) {
           ))}
         </Card>
       )}
-
-      {/* 루틴 */}
       <Card t={t}>
         <SectionLabel t={t}>🧭 {periodLabel} 루틴 달성률</SectionLabel>
         <div style={{display:"flex",alignItems:"center",gap:20,marginBottom:18}}>
@@ -790,13 +731,10 @@ function StatsView({todayIso}) {
           {routinePerDay.map(({done,total},i)=><MiniBar key={i} value={done} max={ROUTINE_KEYS.length} color={dates[i]===todayIso?t.accent:t.accentLight} label={dayLabels[i]} sub={`${done}/${total}`} isToday={dates[i]===todayIso}/>)}
         </div>
       </Card>
-
       <Card t={t}>
         <SectionLabel t={t}>✅ 항목별 달성</SectionLabel>
         {ROUTINE_KEYS.map((key,i)=>{const cnt=allData.filter(({routine})=>routine[key]).length;return <BarRow key={key} label={`${ROUTINE_EMOJI[i]} ${key}`} value={cnt} max={dates.length} color={t.statBars[i%t.statBars.length]} right={`${cnt}/${dates.length}일`}/>;} )}
       </Card>
-
-      {/* 몸무게 */}
       {(()=>{
         const wh=[...new Set(Object.keys(localStorage).filter(k=>k.startsWith("dt_diet_")).map(k=>k.replace("dt_diet_","")))].sort().reduce((acc,wIso)=>{const diet=lsGet("diet",wIso,defDiet);if(diet.몸무게&&parseFloat(diet.몸무게)>0)acc.push({iso:wIso,w:parseFloat(diet.몸무게)});return acc;},[]).slice(-12);
         if(!wh.length)return null;
@@ -812,14 +750,12 @@ function StatsView({todayIso}) {
           </div>
         </Card>;
       })()}
-
       <button onClick={copyText} style={{background:t.accent,color:"#fff",border:"none",borderRadius:16,padding:"15px",...S.h3,cursor:"pointer",fontFamily:"inherit",fontWeight:700,boxShadow:`0 4px 14px ${t.accent}55`}}>📋 텍스트로 복사하기</button>
       <div style={{height:20}}/>
     </div>
   );
 }
 
-// ── History Detail ────────────────────────────────────────────────────────────
 function HistoryDetail({iso, onBack, tab, setTab, todayIso}) {
   const t=THEMES[Math.min(tab,2)];
   const [ledger,setLedger]=useStorage("ledger",iso,defLedger);
@@ -853,18 +789,7 @@ function HistoryDetail({iso, onBack, tab, setTab, todayIso}) {
   );
 }
 
-// ── Calendar Modal ────────────────────────────────────────────────────────────
-const CSS=`
-  @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Pretendard:wght@400;500;600;700;800;900&display=swap');
-  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:'Pretendard','Noto Sans KR',sans-serif;background:#e8e8e8;-webkit-font-smoothing:antialiased;}
-  input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;}
-  textarea,input,button{font-family:inherit;}
-  ::-webkit-scrollbar{width:0;}
-`;
-    
-    function CalendarModal({onClose,onSelect,t,todayIso}) {
+function CalendarModal({onClose,onSelect,t,todayIso}) {
   const [viewYear,setViewYear]=useState(()=>parseInt(todayIso.slice(0,4)));
   const [viewMonth,setViewMonth]=useState(()=>parseInt(todayIso.slice(5,7)));
   const prevMonth=()=>{ if(viewMonth===1){setViewYear(y=>y-1);setViewMonth(12);}else setViewMonth(m=>m-1); };
@@ -878,7 +803,6 @@ const CSS=`
     for(let d=1;d<=daysInMonth;d++){
       const iso=`${monthStr}-${p2(d)}`;
       if(iso>todayIso)continue;
-      // 오늘은 데이터 없어도 항상 접근 가능
       const r=lsGet("routine",iso,defRoutine),l=lsGet("ledger",iso,defLedger);
       const done=ROUTINE_KEYS.filter(k=>r[k]).length;
       const spend=SPEND_CATS.reduce((s,k)=>s+(parseInt(l[k])||0),0)+((l.txns||[]).filter(tx=>tx.type==="지출").reduce((s,tx)=>s+tx.amount,0));
@@ -934,7 +858,6 @@ const CSS=`
   );
 }
 
-// ── App ───────────────────────────────────────────────────────────────────────
 function App() {
   const getLocalDate=()=>{ const d=new Date(); return `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}`; };
   const [iso,setIso]=useState(()=>getLocalDate());
@@ -989,8 +912,6 @@ function App() {
     </div></>
   );
 }
-
-
 
 const root=ReactDOM.createRoot(document.getElementById('root'));
 root.render(React.createElement(App));
